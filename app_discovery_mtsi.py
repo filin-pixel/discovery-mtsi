@@ -266,6 +266,9 @@ if "prioritization_index" not in st.session_state:
 if "prioritization_order" not in st.session_state:
     st.session_state.prioritization_order = []
 
+if "show_prioritization_tasks" not in st.session_state:
+    st.session_state.show_prioritization_tasks = False
+
 st.title("🚀 Discovery Manager")
 st.markdown("Конвейер спринтов: Этап Discovery")
 
@@ -512,7 +515,7 @@ if page == "📋 Список задач":
                     
                     exec_badge = " 👑" if task.get("executive_priority") else ""
                     
-                    with st.expander(f"{value_emoji} **{task['title']}** {status_emoji} `{task['status']}`{exec_badge}"):
+                    with st.expander(f"{value_emoji} **{task['title']}**  │  {status_emoji} `{task['status']}`  │  💎 {task.get('business_value', '')}  │  ⏱ {task.get('complexity', '')}{exec_badge}"):
                         st.markdown("**📊 Прогресс заполнения:**")
                         col1, col2 = st.columns(2)
                         with col1:
@@ -763,17 +766,16 @@ elif page == "📊 Приоритезация задач":
         
         if st.button("🚀 Начать приоритезацию", type="primary"):
             st.session_state.prioritization_index = 0
+            st.session_state.show_prioritization_tasks = True
             st.rerun()
         
-        # Показываем задачи только если нажали кнопку
-        if st.session_state.prioritization_index > 0 or "show_prioritization_tasks" not in st.session_state:
-            st.session_state.show_prioritization_tasks = True
-        
+        # Показываем задачи только если нажали кнопку "Начать приоритезацию"
         if st.session_state.get("show_prioritization_tasks", False) and st.session_state.prioritization_index < len(unprioritized):
             st.markdown("---")
             current_task = unprioritized[st.session_state.prioritization_index]
             
-            st.markdown(f"### 📝 Задача {st.session_state.prioritization_index + 1} из {len(unprioritized)}")
+            st.markdown(f"### 📝 Задача **{st.session_state.prioritization_index + 1}** из **{len(unprioritized)}**")
+            st.progress((st.session_state.prioritization_index) / len(unprioritized), text=f"Прогресс: {st.session_state.prioritization_index}/{len(unprioritized)}")
             
             with st.expander(f"📋 {current_task['title']}", expanded=True):
                 st.markdown(f"**Проблема:** {current_task.get('problem', 'Не указана')}")
