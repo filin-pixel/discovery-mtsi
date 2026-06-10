@@ -5,7 +5,7 @@ import os
 import pandas as pd
 from io import BytesIO
 
-st.set_page_config(page_title="Discovery Manager", page_icon="🚀", layout="wide")
+st.set_page_config(page_title="Discovery Manager", page_icon="", layout="wide")
 
 # ================= ДЕМО-ДАННЫЕ (одна задача) =================
 DEMO_TASKS = [
@@ -79,7 +79,7 @@ BUSINESS_VALUE_HINTS = {
 
 URGENCY_HINTS = {
     "High": "🔴 Жесткий дедлайн, блокирует другие задачи, клиенты уже уходят",
-    "Medium": "🟡 Желательно в этом квартале, накопительный эффект",
+    "Medium": " Желательно в этом квартале, накопительный эффект",
     "Low": "🟢 Нет дедлайна, можно отложить"
 }
 
@@ -184,7 +184,7 @@ def import_tasks_from_excel(uploaded_file):
         tasks = []
         
         for idx, row in df.iterrows():
-            if pd.notna(row.get("Название")) and row.get("Название").strip():
+            if pd.notna(row.get("Название")) and str(row.get("Название")).strip():
                 task = {
                     "id": idx + 1,
                     "title": str(row.get("Название", "")).strip(),
@@ -271,7 +271,7 @@ with st.expander("ℹ️ Как пользоваться Discovery Manager", exp
     """)
 
 # ================= ЭКРАН 1: СПИСОК ЗАДАЧ =================
-if page == "📋 Список задач":
+if page == " Список задач":
     with st.expander("📖 Легенда", expanded=False):
         col_legend1, col_legend2, col_legend3 = st.columns(3)
         with col_legend1:
@@ -291,7 +291,7 @@ if page == "📋 Список задач":
             - 🟢 **Low** — низко
             """)
         with col_legend3:
-            st.markdown("**📏 Ёмкость:**")
+            st.markdown("**📏 мкость:**")
             st.markdown("""
             - **S** — < 5 дней
             - **M** — 5-10 дней
@@ -326,7 +326,7 @@ if page == "📋 Список задач":
                 as_is = st.text_area("As Is", value=task_to_edit.get("as_is", ""), height=80)
                 to_be = st.text_area("To Be", value=task_to_edit.get("to_be", ""), height=80)
                 
-                st.subheader("⚠️ Ограничения")
+                st.subheader("️ Ограничения")
                 dependencies = st.text_area("Зависимости", value=task_to_edit.get("dependencies", ""), height=80)
                 constraints = st.text_area("Ограничения", value=task_to_edit.get("constraints", ""), height=80)
                 risks = st.text_area("Риски", value=task_to_edit.get("risks", ""), height=80)
@@ -405,7 +405,7 @@ if page == "📋 Список задач":
             with col4:
                 st.metric("📊 Не приоритезировано", not_prioritized)
             with col5:
-                st.metric("🚨 Просрочено", overdue)
+                st.metric(" Просрочено", overdue)
             
             st.markdown("---")
             
@@ -415,7 +415,6 @@ if page == "📋 Список задач":
             with col2:
                 value_filter = st.multiselect("Бизнес-ценность", ["High", "Medium", "Low"], default=["High", "Medium", "Low"])
             with col3:
-                # ИСПРАВЛЕНИЕ 1: Добавлен фильтр по приоритетам
                 priority_filter = st.multiselect("Приоритет", ["P1", "P2", "P3", "P4", "Без приоритета"], default=["P1", "P2", "P3", "P4", "Без приоритета"])
             
             filtered = []
@@ -434,32 +433,26 @@ if page == "📋 Список задач":
             
             for task in filtered:
                 readiness = check_readiness(task)
-                status_emoji = {"Idea": "⚪", "In Discovery": "🔵", "Ready for Analyst": "🟠", "Requirements Clarification": "🟣", "Ready for Refinement": "✅"}[task["status"]]
-                value_emoji = {"High": "🔴", "Medium": "🟡", "Low": "🟢"}[task["business_value"]]
+                status_emoji = {"Idea": "", "In Discovery": "🔵", "Ready for Analyst": "🟠", "Requirements Clarification": "🟣", "Ready for Refinement": "✅"}[task["status"]]
+                value_emoji = {"High": "🔴", "Medium": "🟡", "Low": ""}[task["business_value"]]
                 exec_badge = " 👑" if task.get("executive_priority") else ""
                 
-                # ИСПРАВЛЕНИЕ 2: Информация на первом уровне
-                with st.expander(f"**{task['title']}**{exec_badge}"):
-                    # ИНФОРМАЦИЯ НА ПЕРВОМ УРОВНЕ
-                    col_info1, col_info2, col_info3, col_info4, col_info5 = st.columns([2, 1.5, 1.5, 1.5, 1.5])
-                    with col_info1:
-                        st.markdown(f"{value_emoji} **{task['title']}**")
-                    with col_info2:
-                        st.markdown(f"{status_emoji} `{task['status']}`")
-                    with col_info3:
-                        urgency_emoji = "🔴" if task.get("urgency") == "High" else "🟡" if task.get("urgency") == "Medium" else "🟢"
-                        st.markdown(f"{urgency_emoji} {task.get('urgency', 'Medium')}")
-                    with col_info4:
-                        st.markdown(f"⏱ {task.get('complexity', 'M')}")
-                    with col_info5:
-                        priority = task.get('priority', '')
-                        if priority:
-                            st.markdown(f"⭐ {priority}")
-                        else:
-                            st.markdown("⚪ Без приоритета")
-                    
-                    st.markdown("---")
-                    
+                urgency_emoji = "🔴" if task.get("urgency") == "High" else "🟡" if task.get("urgency") == "Medium" else "🟢"
+                priority = task.get('priority', '')
+                priority_display = f"⭐ {priority}" if priority else "⚪ Без приоритета"
+                
+                # HTML для выравнивания колонок в заголовке
+                header_html = f"""
+<div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+    <div style="flex: 2; font-weight: bold;">{value_emoji} {task['title']}{exec_badge}</div>
+    <div style="flex: 1; text-align: center;">{status_emoji} {task['status']}</div>
+    <div style="flex: 1; text-align: center;">{urgency_emoji} {task.get('urgency', 'Medium')}</div>
+    <div style="flex: 1; text-align: center;">⏱ {task.get('complexity', 'M')}</div>
+    <div style="flex: 1; text-align: center;">{priority_display}</div>
+</div>
+"""
+                
+                with st.expander(header_html, expanded=False):
                     st.markdown("**📊 Прогресс:**")
                     col1, col2 = st.columns(2)
                     with col1:
@@ -467,7 +460,7 @@ if page == "📋 Список задач":
                     
                     if readiness["is_ready_for_analyst"] and task["status"] == "In Discovery":
                         st.success("✅ Готово к передаче аналитику!")
-                        if st.button("🚀 Передать аналитику", key=f"ready_{task['id']}", type="primary"):
+                        if st.button(" Передать аналитику", key=f"ready_{task['id']}", type="primary"):
                             task["status"] = "Ready for Analyst"
                             task["analyst_deadline"] = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
                             save_tasks_to_file(st.session_state.tasks)
@@ -569,7 +562,7 @@ elif page == "📊 Приоритезация задач":
     unprioritized = [t for t in tasks if not t.get("priority")]
     prioritized = [t for t in tasks if t.get("priority")]
     
-    st.markdown("### 📈 Дэшборд")
+    st.markdown("###  Дэшборд")
     col1, col2, col3 = st.columns(3)
     with col1:
         st.metric("Всего", len(tasks))
@@ -670,12 +663,12 @@ elif page == "📊 Приоритезация задач":
                 st.markdown(f"**{idx + 1}.** {badge}**{task['title']}** — {task.get('priority')} | RICE: {task.get('rice_score', 0):.2f}")
 
 # ================= ЭКРАН 4: ИМПОРТ ЗАДАЧ =================
-elif page == "📥 Импорт задач":
-    st.header("📥 Импорт задач из Excel")
+elif page == " Импорт задач":
+    st.header(" Импорт задач из Excel")
     
     st.markdown("""
     ### Инструкция:
-    1. **Загрузите шаблон** — скачайте Excel-шаблон для заполнения
+    1. **Загрузите шаблон** — скачайте Excel-шаблон для заполнения задач
     2. **Заполните и сохраните шаблон** — внесите данные о задачах
     3. **Импортируйте заполненный шаблон** — загрузите файл обратно в систему
     """)
@@ -708,7 +701,6 @@ elif page == "📥 Импорт задач":
                 new_tasks = import_tasks_from_excel(uploaded_file)
                 
                 if new_tasks:
-                    # Добавляем новые задачи к существующим
                     max_id = max([t["id"] for t in st.session_state.tasks], default=0)
                     for i, task in enumerate(new_tasks):
                         task["id"] = max_id + i + 1
@@ -716,7 +708,7 @@ elif page == "📥 Импорт задач":
                     
                     save_tasks_to_file(st.session_state.tasks)
                     st.success(f"✅ Импортировано {len(new_tasks)} задач!")
-                    st.info("💡 Перейдите в раздел '📋 Список задач' чтобы увидеть импортированные задачи")
+                    st.info(" Перейдите в раздел '📋 Список задач' чтобы увидеть импортированные задачи")
                 else:
                     st.warning("⚠️ Не удалось импортировать задачи. Проверьте формат файла.")
     
