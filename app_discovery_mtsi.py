@@ -507,160 +507,163 @@ if page == "📋 Список задач":
                 st.markdown("---")
                 
                 for task in tasks_in_group:
-                    readiness = check_readiness(task)
-                    status_emoji = {"Idea": "⚪", "In Discovery": "🔵", "Ready for Analyst": "🟠", "Requirements Clarification": "", "Ready for Refinement": "✅"}[task["status"]]
-                    value_emoji = {"High": "🔴", "Medium": "", "Low": "🟢"}[task["business_value"]]
-                    
-                    exec_badge = " 👑" if task.get("executive_priority") else ""
-                    
-                    # ЗАГОЛОВОК EXPANDER — только название
-                    with st.expander(f"**{task['title']}**{exec_badge}"):
-                        # ИНФОРМАЦИЯ В КОЛОНКАХ — для выравнивания
-                        col_info1, col_info2, col_info3, col_info4 = st.columns([2.5, 2, 1.5, 1.5])
-                        with col_info1:
-                            st.markdown(f"{value_emoji} **{task['title']}**")
-                        with col_info2:
-                            st.markdown(f"{status_emoji} `{task['status']}`")
-                        with col_info3:
-                            st.markdown(f"💎 {task.get('business_value', '')}")
-                        with col_info4:
-                            st.markdown(f"⏱ {task.get('complexity', '')}")
-                        
-                        st.markdown("---")
-                        
-                        st.markdown("**📊 Прогресс заполнения:**")
-                        col1, col2 = st.columns(2)
-                        with col1:
-                            st.progress(readiness["business_progress"], text=f"Бизнес-поля (инициатор): {int(readiness['business_progress']*100)}%")
-                        with col2:
-                            st.progress(readiness["analyst_progress"], text=f"Поля аналитика: {int(readiness['analyst_progress']*100)}%")
-                        
-                        if readiness["is_ready_for_analyst"] and task["status"] == "In Discovery":
-                            st.success("✅ Задача готова к передаче аналитику!")
-                            if st.button("🚀 Передать аналитику", key=f"ready_{task['id']}", type="primary"):
-                                task["status"] = "Ready for Analyst"
-                                task["analyst_deadline"] = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
-                                save_tasks_to_file(st.session_state.tasks)
-                                st.rerun()
-                        elif not readiness["is_ready_for_analyst"]:
-                            missing = readiness["missing_business"]
-                            if missing:
-                                missing_names = [BUSINESS_FIELDS[f] for f in missing]
-                                st.warning(f"⚠️ Не заполнены бизнес-поля: {', '.join(missing_names)}")
-                        
-                        if task.get("analyst_deadline") and task["status"] in ["Ready for Analyst", "Requirements Clarification"]:
-                            deadline_date = datetime.strptime(task["analyst_deadline"], "%Y-%m-%d").date()
-                            days_left = (deadline_date - datetime.now().date()).days
-                            if days_left < 0:
-                                st.error(f"🚨 Срок анализа истек! Дедлайн был {task['analyst_deadline']}")
-                            elif days_left <= 2:
-                                st.warning(f"⏰ Срок анализа истекает через {days_left} дн.")
-                            else:
-                                st.info(f" Срок анализа: {task['analyst_deadline']} (осталось {days_left} дн.)")
-                        
-                        st.markdown("---")
-                        
-                        st.markdown("#### 📌 Основная информация")
-                        col1, col2, col3, col4 = st.columns(4)
-                        with col1:
-                            st.markdown(f"**Тип:** {task.get('type', 'Не указан')}")
-                        with col2:
-                            st.markdown(f"**Владелец:** {task.get('owner', '') or 'Не указан'}")
-                        with col3:
-                            st.markdown(f"**Создана:** {task.get('created_date', 'Не указана')}")
-                        with col4:
-                            rice_display = f"RICE: {task['rice_score']:.2f}" if task.get("rice_score") else "RICE: не рассчитан"
-                            st.markdown(f"**RICE:** {rice_display}")
-                        
-                        st.markdown("---")
-                        
-                        st.markdown("#### 📊 Приоритизация")
-                        col1, col2, col3, col4 = st.columns(4)
-                        with col1:
-                            st.markdown(f"**Срочность:** {task.get('urgency', 'Medium')}")
-                        with col2:
-                            st.markdown(f"**Бизнес-ценность:** {task.get('business_value', 'Medium')}")
-                        with col3:
-                            st.markdown(f"**Сложность:** {task.get('complexity', 'M')}")
-                            if task.get("complexity") in COMPLEXITY_INFO:
-                                info = COMPLEXITY_INFO[task["complexity"]]
-                                st.caption(f"{info['days']} | {info['sprints']}")
-                        with col4:
-                            priority = task.get('priority', '') or 'Не заполнен'
-                            st.markdown(f"**Приоритет:** {priority}")
-                        
-                        st.markdown("---")
-                        
-                        st.markdown("#### 💼 Бизнес-контекст *(заполняет инициатор)*")
-                        st.markdown(f"**Проблема:** {task.get('problem', '') or '⚠️ Не заполнено'}")
-                        st.markdown(f"**Целевая аудитория:** {task.get('audience', '') or '⚠️ Не заполнено'}")
-                        st.markdown(f"**Бизнес-цель:** {task.get('business_goal', '') or '️ Не заполнено'}")
-                        st.markdown(f"**Метрики успеха:** {task.get('metrics', '') or '⚠️ Не заполнено'}")
-                        st.markdown(f"**Что будет если не сделать:** {task.get('impact', '') or '⚠️ Не заполнено'}")
-                        st.markdown(f"**Основной сценарий:** {task.get('use_cases', '') or '⚠️ Не заполнено'}")
-                        
-                        st.markdown("---")
-                        
-                        st.markdown("####  Решение *(опционально)*")
-                        col1, col2 = st.columns(2)
-                        with col1:
-                            st.markdown(f"**As Is:** {task.get('as_is', '') or 'Не описано'}")
-                        with col2:
-                            st.markdown(f"**To Be:** {task.get('to_be', '') or 'Не описано'}")
-                        
-                        st.markdown("---")
-                        
-                        st.markdown("#### ⚠️ Ограничения и зависимости *(опционально)*")
-                        col1, col2, col3 = st.columns(3)
-                        with col1:
-                            st.markdown(f"**Зависимости:** {task.get('dependencies', '') or 'Не указаны'}")
-                        with col2:
-                            st.markdown(f"**Ограничения:** {task.get('constraints', '') or 'Нет'}")
-                        with col3:
-                            st.markdown(f"**Риски:** {task.get('risks', '') or 'Нет'}")
-                        
-                        st.markdown("---")
-                        
-                        st.markdown("####  Поля аналитика *(заполняет аналитик/чаттер-лид)*")
-                        col1, col2 = st.columns(2)
-                        with col1:
-                            st.markdown(f"**Критерии приемки:** {task.get('acceptance_criteria', '') or '⚠️ Не заполнено'}")
-                            st.markdown(f"**Декомпозиция:** {task.get('subtasks', '') or '⚠️ Не заполнено'}")
-                        with col2:
-                            st.markdown(f"**Техническая оценка:** {task.get('technical_estimate', '') or '⚠️ Не заполнено'}")
-                            st.markdown(f"**Детальные зависимости:** {task.get('detailed_dependencies', '') or '⚠️ Не заполнено'}")
-                        
-                        st.markdown("---")
-                        
-                        # Кнопки действий в 4 колонках
-                        col1, col2, col3, col4 = st.columns(4)
-                        with col1:
-                            new_status = st.selectbox("Изменить статус",
-                                ["Idea", "In Discovery", "Ready for Analyst", "Requirements Clarification", "Ready for Refinement"],
-                                index=["Idea", "In Discovery", "Ready for Analyst", "Requirements Clarification", "Ready for Refinement"].index(task["status"]),
-                                key=f"status_{task['id']}")
-                            if new_status != task["status"]:
-                                task["status"] = new_status
-                                save_tasks_to_file(st.session_state.tasks)
-                                st.rerun()
-                        with col2:
-                            if st.button("✏️ Редактировать", key=f"edit_{task['id']}"):
-                                st.session_state.editing_task_id = task["id"]
-                                st.rerun()
-                        with col3:
-                            confluence_text = generate_confluence_text(task)
-                            st.download_button(
-                                label="📥 Confluence",
-                                data=confluence_text,
-                                file_name=f"{task['title']}_confluence.txt",
-                                mime="text/plain",
-                                key=f"confluence_{task['id']}"
-                            )
-                        with col4:
-                            if st.button("🗑️ Удалить", key=f"delete_{task['id']}"):
-                                st.session_state.tasks = [t for t in st.session_state.tasks if t["id"] != task["id"]]
-                                save_tasks_to_file(st.session_state.tasks)
-                                st.rerun()
+    readiness = check_readiness(task)
+    status_emoji = {"Idea": "", "In Discovery": "🔵", "Ready for Analyst": "🟠", "Requirements Clarification": "🟣", "Ready for Refinement": "✅"}[task["status"]]
+    value_emoji = {"High": "🔴", "Medium": "🟡", "Low": "🟢"}[task["business_value"]]
+    
+    exec_badge = " 👑" if task.get("executive_priority") else ""
+    
+    # HTML-заголовок с выравниванием колонок
+    header_html = f"""
+<div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+    <div style="flex: 2; font-weight: bold;">{value_emoji} {task['title']}{exec_badge}</div>
+    <div style="flex: 1; text-align: center;">{status_emoji} <code>{task['status']}</code></div>
+    <div style="flex: 1; text-align: center;">💎 {task.get('business_value', '')}</div>
+    <div style="flex: 1; text-align: center;">⏱ {task.get('complexity', '')}</div>
+</div>
+"""
+    
+    with st.expander(header_html, expanded=False):
+        # Внутри expander - прогресс-бары и детали
+        st.markdown("**📊 Прогресс заполнения:**")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.progress(readiness["business_progress"], text=f"Бизнес-поля (инициатор): {int(readiness['business_progress']*100)}%")
+        with col2:
+            st.progress(readiness["analyst_progress"], text=f"Поля аналитика: {int(readiness['analyst_progress']*100)}%")
+        
+        if readiness["is_ready_for_analyst"] and task["status"] == "In Discovery":
+            st.success("✅ Задача готова к передаче аналитику!")
+            if st.button("🚀 Передать аналитику", key=f"ready_{task['id']}", type="primary"):
+                task["status"] = "Ready for Analyst"
+                task["analyst_deadline"] = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
+                save_tasks_to_file(st.session_state.tasks)
+                st.rerun()
+        elif not readiness["is_ready_for_analyst"]:
+            missing = readiness["missing_business"]
+            if missing:
+                missing_names = [BUSINESS_FIELDS[f] for f in missing]
+                st.warning(f"⚠️ Не заполнены бизнес-поля: {', '.join(missing_names)}")
+        
+        if task.get("analyst_deadline") and task["status"] in ["Ready for Analyst", "Requirements Clarification"]:
+            deadline_date = datetime.strptime(task["analyst_deadline"], "%Y-%m-%d").date()
+            days_left = (deadline_date - datetime.now().date()).days
+            if days_left < 0:
+                st.error(f"🚨 Срок анализа истек! Дедлайн был {task['analyst_deadline']}")
+            elif days_left <= 2:
+                st.warning(f"⏰ Срок анализа истекает через {days_left} дн.")
+            else:
+                st.info(f"📅 Срок анализа: {task['analyst_deadline']} (осталось {days_left} дн.)")
+        
+        st.markdown("---")
+        
+        # Основная информация
+        st.markdown("#### 📌 Основная информация")
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.markdown(f"**Тип:** {task.get('type', 'Не указан')}")
+        with col2:
+            st.markdown(f"**Владелец:** {task.get('owner', '') or 'Не указан'}")
+        with col3:
+            st.markdown(f"**Создана:** {task.get('created_date', 'Не указана')}")
+        with col4:
+            rice_display = f"RICE: {task['rice_score']:.2f}" if task.get("rice_score") else "RICE: не рассчитан"
+            st.markdown(f"**RICE:** {rice_display}")
+        
+        st.markdown("---")
+        
+        # Приоритизация
+        st.markdown("#### 📊 Приоритизация")
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.markdown(f"**Срочность:** {task.get('urgency', 'Medium')}")
+        with col2:
+            st.markdown(f"**Бизнес-ценность:** {task.get('business_value', 'Medium')}")
+        with col3:
+            st.markdown(f"**Сложность:** {task.get('complexity', 'M')}")
+            if task.get("complexity") in COMPLEXITY_INFO:
+                info = COMPLEXITY_INFO[task["complexity"]]
+                st.caption(f"{info['days']} | {info['sprints']}")
+        with col4:
+            priority = task.get('priority', '') or 'Не заполнен'
+            st.markdown(f"**Приоритет:** {priority}")
+        
+        st.markdown("---")
+        
+        # Бизнес-контекст
+        st.markdown("#### 💼 Бизнес-контекст *(заполняет инициатор)*")
+        st.markdown(f"**Проблема:** {task.get('problem', '') or '⚠️ Не заполнено'}")
+        st.markdown(f"**Целевая аудитория:** {task.get('audience', '') or '⚠️ Не заполнено'}")
+        st.markdown(f"**Бизнес-цель:** {task.get('business_goal', '') or '⚠️ Не заполнено'}")
+        st.markdown(f"**Метрики успеха:** {task.get('metrics', '') or '⚠️ Не заполнено'}")
+        st.markdown(f"**Что будет если не сделать:** {task.get('impact', '') or '⚠️ Не заполнено'}")
+        st.markdown(f"**Основной сценарий:** {task.get('use_cases', '') or '⚠️ Не заполнено'}")
+        
+        st.markdown("---")
+        
+        # Решение
+        st.markdown("####  Решение *(опционально)*")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown(f"**As Is:** {task.get('as_is', '') or 'Не описано'}")
+        with col2:
+            st.markdown(f"**To Be:** {task.get('to_be', '') or 'Не описано'}")
+        
+        st.markdown("---")
+        
+        # Ограничения
+        st.markdown("#### ⚠️ Ограничения и зависимости *(опционально)*")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.markdown(f"**Зависимости:** {task.get('dependencies', '') or 'Не указаны'}")
+        with col2:
+            st.markdown(f"**Ограничения:** {task.get('constraints', '') or 'Нет'}")
+        with col3:
+            st.markdown(f"**Риски:** {task.get('risks', '') or 'Нет'}")
+        
+        st.markdown("---")
+        
+        # Поля аналитика
+        st.markdown("#### 🔧 Поля аналитика *(заполняет аналитик/чаттер-лид)*")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown(f"**Критерии приемки:** {task.get('acceptance_criteria', '') or '⚠️ Не заполнено'}")
+            st.markdown(f"**Декомпозиция:** {task.get('subtasks', '') or '⚠️ Не заполнено'}")
+        with col2:
+            st.markdown(f"**Техническая оценка:** {task.get('technical_estimate', '') or '⚠️ Не заполнено'}")
+            st.markdown(f"**Детальные зависимости:** {task.get('detailed_dependencies', '') or '⚠️ Не заполнено'}")
+        
+        st.markdown("---")
+        
+        # Кнопки действий
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            new_status = st.selectbox("Изменить статус",
+                ["Idea", "In Discovery", "Ready for Analyst", "Requirements Clarification", "Ready for Refinement"],
+                index=["Idea", "In Discovery", "Ready for Analyst", "Requirements Clarification", "Ready for Refinement"].index(task["status"]),
+                key=f"status_{task['id']}")
+            if new_status != task["status"]:
+                task["status"] = new_status
+                save_tasks_to_file(st.session_state.tasks)
+                st.rerun()
+        with col2:
+            if st.button("✏️ Редактировать", key=f"edit_{task['id']}"):
+                st.session_state.editing_task_id = task["id"]
+                st.rerun()
+        with col3:
+            confluence_text = generate_confluence_text(task)
+            st.download_button(
+                label="📥 Confluence",
+                data=confluence_text,
+                file_name=f"{task['title']}_confluence.txt",
+                mime="text/plain",
+                key=f"confluence_{task['id']}"
+            )
+        with col4:
+            if st.button("🗑️ Удалить", key=f"delete_{task['id']}"):
+                st.session_state.tasks = [t for t in st.session_state.tasks if t["id"] != task["id"]]
+                save_tasks_to_file(st.session_state.tasks)
+                st.rerun()
                 
                 st.markdown("---")
 
