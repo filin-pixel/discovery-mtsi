@@ -440,19 +440,29 @@ if page == " Список задач":
                 urgency_emoji = "🔴" if task.get("urgency") == "High" else "🟡" if task.get("urgency") == "Medium" else "🟢"
                 priority = task.get('priority', '')
                 priority_display = f"⭐ {priority}" if priority else "⚪ Без приоритета"
+
                 
-                # HTML для выравнивания колонок в заголовке
-                header_html = f"""
-<div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-    <div style="flex: 2; font-weight: bold;">{value_emoji} {task['title']}{exec_badge}</div>
-    <div style="flex: 1; text-align: center;">{status_emoji} {task['status']}</div>
-    <div style="flex: 1; text-align: center;">{urgency_emoji} {task.get('urgency', 'Medium')}</div>
-    <div style="flex: 1; text-align: center;">⏱ {task.get('complexity', 'M')}</div>
-    <div style="flex: 1; text-align: center;">{priority_display}</div>
-</div>
-"""
+                # ===== Строка задачи до раскрытия =====
+                priority = task.get("priority", "")
+                priority_display = priority if priority else "—"
+
+                col1, col2, col3, col4, col5, col6 = st.columns([4, 2, 1.3, 1.3, 1, 1])
+                with col1:
+                    st.markdown(f"**{task['title']}** {exec_badge}")
+                with col2:
+                    st.markdown(f"{status_emoji} {task['status']}")
+                with col3:
+                    st.markdown(f"{urgency_emoji} {task.get('urgency', 'Medium')}")
+                with col4:
+                    st.markdown(f"{value_emoji} {task.get('business_value', 'Medium')}")
+                with col5:
+                    st.markdown(f"⏱ {task.get('complexity', 'M')}")
+                with col6:
+                    st.markdown(f"⭐ {priority_display}")
+
                 
-                with st.expander(header_html, expanded=False):
+                with st.expander("Подробнее", expanded=False):
+         
                     st.markdown("**📊 Прогресс:**")
                     col1, col2 = st.columns(2)
                     with col1:
