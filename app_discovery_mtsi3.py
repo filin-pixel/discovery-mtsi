@@ -504,6 +504,27 @@ if page == "📋 Список задач":
                 emoji, header = group_headers[priority_level]
                 st.markdown(f"### {emoji} {header}")
                 st.markdown(f"*{len(tasks_in_group)} задач*")
+                # Заголовок списка
+                h1, h2, h3, h4, h5, h6 = st.columns([4, 2, 1.3, 1.3, 1, 1])
+
+                with h1:
+                    st.markdown("**Задача**")
+                    
+                with h2:
+                    st.markdown("**Статус**")
+                    
+                with h3:
+                    st.markdown("**Срочность**")
+                    
+                with h4:
+                    st.markdown("**Критичность**")
+                    
+                with h5:
+                    st.markdown("**Ёмкость**")
+                    
+                with h6:
+                    st.markdown("**Приоритет**")
+               
                 st.markdown("---")
                 
                 for task in tasks_in_group:
