@@ -41,6 +41,76 @@ DEMO_TASKS = [
         "owner": "",
         "created_date": "2026-06-10",
         "prioritized_at": "2026-06-10 12:00"
+    },
+    {
+        "id": 2,
+        "title": "Инвесткопилка",
+        "type": "Бизнес-фича",
+        "problem": "Нет автоматического инвестирования небольших сумм",
+        "audience": "Клиенты МТС Инвестиций",
+        "business_goal": "Увеличить AUM и количество активных клиентов",
+        "metrics": "AUM, фондированные и активные клиенты",
+        "impact": "Потеря клиентов, которые хотят инвестировать по чуть-чуть",
+        "as_is": "Клим + Саша Стояновский делают прототип",
+        "to_be": "Автоматическое инвестирование округленных сумм",
+        "use_cases": "Клиент → Подключает инвесткопилку → Система инвестирует округления",
+        "dependencies": "Зависит от механики (iOS, web ЛК, комиссия, МТСИ)",
+        "constraints": "Желательно не создавать новые договоры/счета",
+        "risks": "Сложность с выходными днями и расчетами",
+        "acceptance_criteria": "",
+        "subtasks": "",
+        "technical_estimate": "",
+        "detailed_dependencies": "",
+        "analyst_deadline": "",
+        "priority": "",
+        "rice_score": 0,
+        "reach": 0,
+        "impact_rice": 0,
+        "confidence": 0,
+        "effort": 0,
+        "executive_priority": False,
+        "urgency": "High",
+        "business_value": "High",
+        "complexity": "XL",
+        "status": "In Discovery",
+        "owner": "Клим + Саша Стояновский",
+        "created_date": "2026-06-10",
+        "prioritized_at": ""
+    },
+    {
+        "id": 3,
+        "title": "СБП по ценным бумагам",
+        "type": "Регуляторика",
+        "problem": "Регуляторное требование с 01.09",
+        "audience": "Все клиенты",
+        "business_goal": "Соответствие регуляторным требованиям",
+        "metrics": "Регуляторка + потенциально AUM",
+        "impact": "Штрафы от регулятора",
+        "as_is": "Нужно посмотреть макеты и направить в Депозитарий",
+        "to_be": "Интеграция с СБП для операций с ценными бумагами",
+        "use_cases": "Клиент → Выбирает СБП → Совершает операцию с ЦБ",
+        "dependencies": "Общебанк, Депозитарий",
+        "constraints": "Срок до 01.09",
+        "risks": "Задержка от Депозитария",
+        "acceptance_criteria": "",
+        "subtasks": "",
+        "technical_estimate": "",
+        "detailed_dependencies": "",
+        "analyst_deadline": "2026-06-17",
+        "priority": "",
+        "rice_score": 0,
+        "reach": 0,
+        "impact_rice": 0,
+        "confidence": 0,
+        "effort": 0,
+        "executive_priority": True,
+        "urgency": "High",
+        "business_value": "High",
+        "complexity": "XL",
+        "status": "Ready for Analyst",
+        "owner": "",
+        "created_date": "2026-06-10",
+        "prioritized_at": ""
     }
 ]
 
@@ -54,13 +124,6 @@ BUSINESS_FIELDS = {
     "use_cases": "Основной сценарий"
 }
 
-ANALYST_FIELDS = {
-    "acceptance_criteria": "Критерии приемки (DoD)",
-    "subtasks": "Декомпозиция на подзадачи",
-    "technical_estimate": "Техническая оценка",
-    "detailed_dependencies": "Детальные технические зависимости"
-}
-
 COMPLEXITY_INFO = {
     "S": {"days": "< 5 дней", "sprints": "< 0.5 спринта", "effort_score": 1},
     "M": {"days": "5-10 дней", "sprints": "0.5-1 спринт", "effort_score": 2},
@@ -70,9 +133,9 @@ COMPLEXITY_INFO = {
 }
 
 BUSINESS_VALUE_HINTS = {
-    "High": "🔴 Влияет на деньги (AUM, опердоход), регуляторные требования, удержание клиентов",
+    "High": " Влияет на деньги (AUM, опердоход), регуляторные требования, удержание клиентов",
     "Medium": "🟡 Влияет на NPS, активность клиентов, конверсию (но не критично)",
-    "Low": "🟢 Косметические улучшения, внутренние удобства"
+    "Low": " Косметические улучшения, внутренние удобства"
 }
 
 URGENCY_HINTS = {
@@ -108,7 +171,6 @@ def priority_sort_key(task):
     return order.get(p, 4)
 
 def save_tasks_to_file(tasks):
-    """Сохраняет задачи в JSON файл (для постоянного хранения)"""
     try:
         with open('tasks_data.json', 'w', encoding='utf-8') as f:
             json.dump(tasks, f, ensure_ascii=False, indent=2)
@@ -116,7 +178,6 @@ def save_tasks_to_file(tasks):
         st.error(f"Ошибка сохранения: {e}")
 
 def load_tasks_from_file():
-    """Загружает задачи из JSON файла"""
     try:
         if os.path.exists('tasks_data.json'):
             with open('tasks_data.json', 'r', encoding='utf-8') as f:
@@ -126,7 +187,6 @@ def load_tasks_from_file():
     return None
 
 # ================= ИНИЦИАЛИЗАЦИЯ =================
-# Сначала пробуем загрузить из файла
 saved_tasks = load_tasks_from_file()
 
 if "tasks" not in st.session_state:
@@ -150,10 +210,10 @@ if "prioritization_order" not in st.session_state:
 st.title("🚀 Discovery Manager")
 st.markdown("Конвейер спринтов: Этап Discovery")
 
-page = st.sidebar.radio("Навигация", ["📋 Список задач", "➕ Новая задача", "📊 Приоритезация задач"])
+page = st.sidebar.radio("Навигация", ["📋 Список задач", "➕ Новая задача", " Приоритезация задач"])
 
 # ================= ИНСТРУКЦИЯ =================
-with st.expander("ℹ️ Как пользоваться Discovery Manager", expanded=False):
+with st.expander("️ Как пользоваться Discovery Manager", expanded=False):
     st.markdown("""
     **🎯 Цель этапа Discovery:** Превратить сырую идею в задачу, готовую к передаче аналитику.
     
@@ -167,14 +227,13 @@ with st.expander("ℹ️ Как пользоваться Discovery Manager", exp
 
 # ================= ЭКРАН 1: СПИСОК ЗАДАЧ =================
 if page == "📋 Список задач":
-    # ЛЕГЕНДА — теперь только здесь!
     with st.expander("📖 Легенда", expanded=False):
         col_legend1, col_legend2, col_legend3 = st.columns(3)
         with col_legend1:
             st.markdown("**📌 Статусы задач:**")
             st.markdown("""
             - ⚪ **Idea** — сырая идея
-            - 🔵 **In Discovery** — бизнес заполняет шаблон
+            -  **In Discovery** — бизнес заполняет шаблон
             - 🟠 **Ready for Analyst** — готово к передаче аналитику
             - 🟣 **Requirements Clarification** — аналитик уточняет требования
             - ✅ **Ready for Refinement** — готово к бэклог-рефайнменту
@@ -199,7 +258,6 @@ if page == "📋 Список задач":
             """)
         st.markdown("---")
     
-    # Остальной код списка задач...
     if st.session_state.editing_task_id is not None:
         task_to_edit = next((t for t in st.session_state.tasks if t["id"] == st.session_state.editing_task_id), None)
         if task_to_edit:
@@ -232,7 +290,7 @@ if page == "📋 Список задач":
                 with col2:
                     use_cases = st.text_area("Основной сценарий", value=task_to_edit.get("use_cases", ""), height=80)
                 
-                st.subheader("⚠️ Ограничения")
+                st.subheader("️ Ограничения")
                 col1, col2, col3 = st.columns(3)
                 with col1:
                     dependencies = st.text_area("Зависимости", value=task_to_edit.get("dependencies", ""), height=80)
@@ -241,7 +299,7 @@ if page == "📋 Список задач":
                 with col3:
                     risks = st.text_area("Риски", value=task_to_edit.get("risks", ""), height=80)
                 
-                st.subheader("🔧 Поля аналитика")
+                st.subheader(" Поля аналитика")
                 col1, col2 = st.columns(2)
                 with col1:
                     acceptance_criteria = st.text_area("Критерии приемки", value=task_to_edit.get("acceptance_criteria", ""), height=80)
@@ -257,7 +315,7 @@ if page == "📋 Список задач":
                 else:
                     analyst_deadline = None
                 
-                st.subheader("📊 Приоритизация")
+                st.subheader(" Приоритизация")
                 col1, col2, col3 = st.columns(3)
                 with col1:
                     urgency = st.selectbox("Срочность", ["High", "Medium", "Low"],
@@ -299,11 +357,10 @@ if page == "📋 Список задач":
         st.header("Бэклог инициатив")
         
         if not st.session_state.tasks:
-            st.info("ℹ️ Нет задач. Создай первую!")
+            st.info("️ Нет задач. Создай первую!")
         else:
             tasks = st.session_state.tasks
             
-            # ДЭШБОРД
             needs_business_fill = sum(1 for t in tasks if not check_readiness(t)["is_ready_for_analyst"])
             ready_for_analyst = sum(1 for t in tasks if check_readiness(t)["is_ready_for_analyst"] and t["status"] == "In Discovery")
             not_prioritized = sum(1 for t in tasks if not t.get("priority"))
@@ -326,7 +383,6 @@ if page == "📋 Список задач":
             
             st.markdown("---")
             
-            # ФИЛЬТРЫ
             col1, col2, col3 = st.columns(3)
             with col1:
                 status_filter = st.multiselect("Статус",
@@ -348,68 +404,100 @@ if page == "📋 Список задач":
                     continue
                 filtered.append(t)
             
-            filtered.sort(key=lambda x: (priority_sort_key(x), {"High": 0, "Medium": 1, "Low": 2}.get(x["business_value"], 3)))
+            # ===== ГРУППИРОВКА ПО ПРИОРИТЕТАМ =====
+            priority_groups = {
+                "P1": [t for t in filtered if t.get("priority") == "P1"],
+                "P2": [t for t in filtered if t.get("priority") == "P2"],
+                "P3": [t for t in filtered if t.get("priority") == "P3"],
+                "P4": [t for t in filtered if t.get("priority") == "P4"],
+                "Без приоритета": [t for t in filtered if not t.get("priority")]
+            }
+            
+            # Сортировка внутри каждой группы
+            for key in priority_groups:
+                priority_groups[key].sort(key=lambda x: (
+                    {"High": 0, "Medium": 1, "Low": 2}.get(x["business_value"], 3),
+                    {"High": 0, "Medium": 1, "Low": 2}.get(x["urgency"], 3)
+                ))
             
             st.markdown(f"**Показано: {len(filtered)} из {len(tasks)}**")
             st.markdown("---")
             
-            for task in filtered:
-                readiness = check_readiness(task)
-                status_emoji = {"Idea": "⚪", "In Discovery": "🔵", "Ready for Analyst": "🟠", "Requirements Clarification": "🟣", "Ready for Refinement": "✅"}[task["status"]]
-                value_emoji = {"High": "🔴", "Medium": "🟡", "Low": "🟢"}[task["business_value"]]
+            # Отображение по группам
+            group_headers = {
+                "P1": ("🔴", "P1 — Критичный приоритет"),
+                "P2": ("🟠", "P2 — Высокий приоритет"),
+                "P3": ("🟡", "P3 — Средний приоритет"),
+                "P4": ("🟢", "P4 — Низкий приоритет"),
+                "Без приоритета": ("⚪", "Без приоритета")
+            }
+            
+            for priority_level, tasks_in_group in priority_groups.items():
+                if not tasks_in_group:
+                    continue
                 
-                priority_badge = f" | ⭐ **{task['priority']}**" if task.get("priority") else ""
-                if task.get("executive_priority"):
-                    priority_badge += " 👑"
+                emoji, header = group_headers[priority_level]
+                st.markdown(f"### {emoji} {header}")
+                st.markdown(f"*{len(tasks_in_group)} задач*")
+                st.markdown("---")
                 
-                with st.expander(f"{value_emoji} **{task['title']}** {status_emoji} `{task['status']}`{priority_badge}"):
-                    st.markdown("**📊 Прогресс:**")
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.progress(readiness["business_progress"], text=f"Бизнес-поля: {int(readiness['business_progress']*100)}%")
-                    with col2:
-                        st.caption(f"RICE: {task.get('rice_score', 0):.2f}" if task.get("rice_score") else "RICE: не рассчитан")
+                for task in tasks_in_group:
+                    readiness = check_readiness(task)
+                    status_emoji = {"Idea": "⚪", "In Discovery": "🔵", "Ready for Analyst": "🟠", "Requirements Clarification": "🟣", "Ready for Refinement": "✅"}[task["status"]]
+                    value_emoji = {"High": "🔴", "Medium": "🟡", "Low": "🟢"}[task["business_value"]]
                     
-                    if readiness["is_ready_for_analyst"] and task["status"] == "In Discovery":
-                        st.success("✅ Готово к передаче аналитику!")
-                        if st.button("🚀 Передать аналитику", key=f"ready_{task['id']}", type="primary"):
-                            task["status"] = "Ready for Analyst"
-                            task["analyst_deadline"] = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
-                            save_tasks_to_file(st.session_state.tasks)
-                            st.rerun()
-                    elif not readiness["is_ready_for_analyst"]:
-                        missing = [BUSINESS_FIELDS[f] for f in readiness["missing_business"]]
-                        if missing:
-                            st.warning(f"⚠️ Не заполнено: {', '.join(missing)}")
+                    exec_badge = " 👑" if task.get("executive_priority") else ""
                     
-                    st.markdown("---")
-                    st.markdown(f"**Проблема:** {task.get('problem', 'Не указано')}")
-                    st.markdown(f"**Цель:** {task.get('business_goal', 'Не указана')}")
-                    st.markdown(f"**Метрики:** {task.get('metrics', 'Не указаны')}")
-                    
-                    col1, col2, col3 = st.columns(3)
-                    with col1:
-                        if st.button("✏️ Редактировать", key=f"edit_{task['id']}"):
-                            st.session_state.editing_task_id = task["id"]
-                            st.rerun()
-                    with col2:
-                        new_status = st.selectbox("Статус",
-                            ["Idea", "In Discovery", "Ready for Analyst", "Requirements Clarification", "Ready for Refinement"],
-                            index=["Idea", "In Discovery", "Ready for Analyst", "Requirements Clarification", "Ready for Refinement"].index(task["status"]),
-                            key=f"status_{task['id']}")
-                        if new_status != task["status"]:
-                            task["status"] = new_status
-                            save_tasks_to_file(st.session_state.tasks)
-                            st.rerun()
-                    with col3:
-                        if st.button("🗑️ Удалить", key=f"delete_{task['id']}"):
-                            st.session_state.tasks = [t for t in st.session_state.tasks if t["id"] != task["id"]]
-                            save_tasks_to_file(st.session_state.tasks)
-                            st.rerun()
+                    with st.expander(f"{value_emoji} **{task['title']}** {status_emoji} `{task['status']}`{exec_badge}"):
+                        st.markdown("** Прогресс:**")
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            st.progress(readiness["business_progress"], text=f"Бизнес-поля: {int(readiness['business_progress']*100)}%")
+                        with col2:
+                            rice_display = f"RICE: {task['rice_score']:.2f}" if task.get("rice_score") else "RICE: не рассчитан"
+                            st.caption(rice_display)
+                        
+                        if readiness["is_ready_for_analyst"] and task["status"] == "In Discovery":
+                            st.success("✅ Готово к передаче аналитику!")
+                            if st.button("🚀 Передать аналитику", key=f"ready_{task['id']}", type="primary"):
+                                task["status"] = "Ready for Analyst"
+                                task["analyst_deadline"] = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
+                                save_tasks_to_file(st.session_state.tasks)
+                                st.rerun()
+                        elif not readiness["is_ready_for_analyst"]:
+                            missing = [BUSINESS_FIELDS[f] for f in readiness["missing_business"]]
+                            if missing:
+                                st.warning(f"⚠️ Не заполнено: {', '.join(missing)}")
+                        
+                        st.markdown("---")
+                        st.markdown(f"**Проблема:** {task.get('problem', 'Не указано')}")
+                        st.markdown(f"**Цель:** {task.get('business_goal', 'Не указана')}")
+                        st.markdown(f"**Метрики:** {task.get('metrics', 'Не указаны')}")
+                        
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            if st.button("✏️ Редактировать", key=f"edit_{task['id']}"):
+                                st.session_state.editing_task_id = task["id"]
+                                st.rerun()
+                        with col2:
+                            new_status = st.selectbox("Статус",
+                                ["Idea", "In Discovery", "Ready for Analyst", "Requirements Clarification", "Ready for Refinement"],
+                                index=["Idea", "In Discovery", "Ready for Analyst", "Requirements Clarification", "Ready for Refinement"].index(task["status"]),
+                                key=f"status_{task['id']}")
+                            if new_status != task["status"]:
+                                task["status"] = new_status
+                                save_tasks_to_file(st.session_state.tasks)
+                                st.rerun()
+                        with col3:
+                            if st.button("🗑️ Удалить", key=f"delete_{task['id']}"):
+                                st.session_state.tasks = [t for t in st.session_state.tasks if t["id"] != task["id"]]
+                                save_tasks_to_file(st.session_state.tasks)
+                                st.rerun()
+                
+                st.markdown("---")
 
 # ================= ЭКРАН 2: НОВАЯ ЗАДАЧА =================
 elif page == "➕ Новая задача":
-    # Здесь НЕТ легенды!
     if not st.session_state.show_new_task_form:
         st.header("Создание новой инициативы")
         st.markdown("""
@@ -422,7 +510,7 @@ elif page == "➕ Новая задача":
         st.markdown("---")
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
-            if st.button("➕ Создать задачу", type="primary", use_container_width=True):
+            if st.button(" Создать задачу", type="primary", use_container_width=True):
                 st.session_state.show_new_task_form = True
                 st.rerun()
     else:
@@ -432,7 +520,7 @@ elif page == "➕ Новая задача":
             st.rerun()
         
         with st.form("new_task"):
-            st.subheader("📌 Базовая информация")
+            st.subheader(" Базовая информация")
             col1, col2 = st.columns(2)
             with col1:
                 title = st.text_input("Название *", placeholder="Краткое название")
@@ -485,7 +573,7 @@ elif page == "➕ Новая задача":
                     st.success(f"✅ Задача '{title}' создана!")
                     st.rerun()
                 else:
-                    st.error("❌ Укажи название")
+                    st.error(" Укажи название")
 
 # ================= ЭКРАН 3: ПРИОРИТЕЗАЦИЯ =================
 elif page == "📊 Приоритезация задач":
@@ -495,12 +583,12 @@ elif page == "📊 Приоритезация задач":
     unprioritized = [t for t in tasks if not t.get("priority")]
     prioritized = [t for t in tasks if t.get("priority")]
     
-    st.markdown("### 📈 Дэшборд")
+    st.markdown("###  Дэшборд")
     col1, col2, col3 = st.columns(3)
     with col1:
         st.metric("Всего", len(tasks))
     with col2:
-        st.metric(" Не приоритезировано", len(unprioritized))
+        st.metric("⏳ Не приоритезировано", len(unprioritized))
     with col3:
         st.metric("✅ Приоритезировано", len(prioritized))
     
@@ -511,7 +599,7 @@ elif page == "📊 Приоритезация задач":
     elif len(unprioritized) == 0:
         st.success("✅ Все приоритезированы!")
     else:
-        st.markdown(f"⚠️ **{len(unprioritized)} задач** ждут приоритезации")
+        st.markdown(f"️ **{len(unprioritized)} задач** ждут приоритезации")
         st.markdown("---")
         
         if st.button("🚀 Начать", type="primary"):
