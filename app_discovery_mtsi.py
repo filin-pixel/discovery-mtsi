@@ -2,6 +2,8 @@ import streamlit as st
 from datetime import datetime, timedelta
 import json
 import os
+import pandas as pd
+from io import BytesIO
 
 st.set_page_config(page_title="Discovery Manager", page_icon="🚀", layout="wide")
 
@@ -160,6 +162,71 @@ h3. Приоритизация
         text += f"*Срок анализа:* {task['analyst_deadline']}\n"
     return text
 
+def create_template():
+    """Создает шаблон Excel для импорта задач"""
+    df = pd.DataFrame(columns=[
+        "Название", "Инициатор", "Тип задачи", "Проблема/Возможность",
+        "Целевая аудитория", "Метрики успеха", "Бизнес цель",
+        "Что будет если не сделать?", "Основной сценарий",
+        "Срочность", "Бизнес-ценность", "Сложность/Ёмкость"
+    ])
+    
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name='Шаблон', index=False)
+    output.seek(0)
+    return output
+
+def import_tasks_from_excel(uploaded_file):
+    """Импортирует задачи из Excel файла"""
+    try:
+        df = pd.read_excel(uploaded_file)
+        tasks = []
+        
+        for idx, row in df.iterrows():
+            if pd.notna(row.get("Название")) and row.get("Название").strip():
+                task = {
+                    "id": idx + 1,
+                    "title": str(row.get("Название", "")).strip(),
+                    "owner": str(row.get("Инициатор", "")).strip(),
+                    "type": str(row.get("Тип задачи", "Бизнес-фича")).strip(),
+                    "problem": str(row.get("Проблема/Возможность", "")).strip(),
+                    "audience": str(row.get("Целевая аудитория", "")).strip(),
+                    "metrics": str(row.get("Метрики успеха", "")).strip(),
+                    "business_goal": str(row.get("Бизнес цель", "")).strip(),
+                    "impact": str(row.get("Что будет если не сделать?", "")).strip(),
+                    "use_cases": str(row.get("Основной сценарий", "")).strip(),
+                    "urgency": str(row.get("Срочность", "Medium")).strip(),
+                    "business_value": str(row.get("Бизнес-ценность", "Medium")).strip(),
+                    "complexity": str(row.get("Сложность/Ёмкость", "M")).strip(),
+                    "as_is": "",
+                    "to_be": "",
+                    "dependencies": "",
+                    "constraints": "",
+                    "risks": "",
+                    "acceptance_criteria": "",
+                    "subtasks": "",
+                    "technical_estimate": "",
+                    "detailed_dependencies": "",
+                    "analyst_deadline": "",
+                    "priority": "",
+                    "rice_score": 0,
+                    "reach": 0,
+                    "impact_rice": 0,
+                    "confidence": 0,
+                    "effort": 0,
+                    "executive_priority": False,
+                    "status": "Idea",
+                    "created_date": datetime.now().strftime("%Y-%m-%d"),
+                    "prioritized_at": ""
+                }
+                tasks.append(task)
+        
+        return tasks
+    except Exception as e:
+        st.error(f"Ошибка импорта: {e}")
+        return []
+
 # ================= ИНИЦИАЛИЗАЦИЯ =================
 saved_tasks = load_tasks_from_file()
 
@@ -187,7 +254,7 @@ if "show_prioritization_tasks" not in st.session_state:
 st.title("🚀 Discovery Manager")
 st.markdown("Конвейер спринтов: Этап Discovery")
 
-page = st.sidebar.radio("Навигация", ["📋 Список задач", "➕ Новая задача", "📊 Приоритезация задач"])
+page = st.sidebar.radio("Навигация", ["📋 Список задач", "➕ Новая задача", "📊 Приоритезация задач", "📥 Импорт задач"])
 
 # ================= ИНСТРУКЦИЯ =================
 with st.expander("ℹ️ Как пользоваться Discovery Manager", expanded=False):
@@ -348,9 +415,19 @@ if page == "📋 Список задач":
             with col2:
                 value_filter = st.multiselect("Бизнес-ценность", ["High", "Medium", "Low"], default=["High", "Medium", "Low"])
             with col3:
+                # ИСПРАВЛЕНИЕ 1: Добавлен фильтр по приоритетам
                 priority_filter = st.multiselect("Приоритет", ["P1", "P2", "P3", "P4", "Без приоритета"], default=["P1", "P2", "P3", "P4", "Без приоритета"])
             
-            filtered = [t for t in tasks if t["status"] in status_filter and t["business_value"] in value_filter and (t.get("priority", "") or "Без приоритета") in priority_filter]
+            filtered = []
+            for t in tasks:
+                if t["status"] not in status_filter:
+                    continue
+                if t["business_value"] not in value_filter:
+                    continue
+                p = t.get("priority", "") or "Без приоритета"
+                if p not in priority_filter:
+                    continue
+                filtered.append(t)
             
             st.markdown(f"**Показано: {len(filtered)}**")
             st.markdown("---")
@@ -361,17 +438,25 @@ if page == "📋 Список задач":
                 value_emoji = {"High": "🔴", "Medium": "🟡", "Low": "🟢"}[task["business_value"]]
                 exec_badge = " 👑" if task.get("executive_priority") else ""
                 
+                # ИСПРАВЛЕНИЕ 2: Информация на первом уровне
                 with st.expander(f"**{task['title']}**{exec_badge}"):
-                    # ИНФОРМАЦИЯ В КОЛОНКАХ (на верхнем уровне)
-                    col_info1, col_info2, col_info3, col_info4 = st.columns([2.5, 2, 1.5, 1.5])
+                    # ИНФОРМАЦИЯ НА ПЕРВОМ УРОВНЕ
+                    col_info1, col_info2, col_info3, col_info4, col_info5 = st.columns([2, 1.5, 1.5, 1.5, 1.5])
                     with col_info1:
                         st.markdown(f"{value_emoji} **{task['title']}**")
                     with col_info2:
                         st.markdown(f"{status_emoji} `{task['status']}`")
                     with col_info3:
-                        st.markdown(f"💎 {task.get('business_value', '')}")
+                        urgency_emoji = "🔴" if task.get("urgency") == "High" else "🟡" if task.get("urgency") == "Medium" else "🟢"
+                        st.markdown(f"{urgency_emoji} {task.get('urgency', 'Medium')}")
                     with col_info4:
-                        st.markdown(f"⏱ {task.get('complexity', '')}")
+                        st.markdown(f"⏱ {task.get('complexity', 'M')}")
+                    with col_info5:
+                        priority = task.get('priority', '')
+                        if priority:
+                            st.markdown(f"⭐ {priority}")
+                        else:
+                            st.markdown("⚪ Без приоритета")
                     
                     st.markdown("---")
                     
@@ -583,3 +668,71 @@ elif page == "📊 Приоритезация задач":
             if task:
                 badge = "👑 " if task.get("executive_priority") else ""
                 st.markdown(f"**{idx + 1}.** {badge}**{task['title']}** — {task.get('priority')} | RICE: {task.get('rice_score', 0):.2f}")
+
+# ================= ЭКРАН 4: ИМПОРТ ЗАДАЧ =================
+elif page == "📥 Импорт задач":
+    st.header("📥 Импорт задач из Excel")
+    
+    st.markdown("""
+    ### Инструкция:
+    1. **Загрузите шаблон** — скачайте Excel-шаблон для заполнения
+    2. **Заполните и сохраните шаблон** — внесите данные о задачах
+    3. **Импортируйте заполненный шаблон** — загрузите файл обратно в систему
+    """)
+    
+    st.markdown("---")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.subheader("📥 Шаг 1: Загрузить шаблон")
+        st.markdown("Скачайте шаблон Excel для заполнения задач")
+        
+        template_file = create_template()
+        st.download_button(
+            label="📥 Загрузить шаблон",
+            data=template_file,
+            file_name="Шаблон_задач_MTSI.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            use_container_width=True
+        )
+    
+    with col2:
+        st.subheader("📤 Шаг 2: Импортировать задачи")
+        st.markdown("Загрузите заполненный Excel файл")
+        
+        uploaded_file = st.file_uploader("Выберите файл Excel", type=['xlsx'], key="import_file")
+        
+        if uploaded_file:
+            if st.button("📤 Импортировать задачи", type="primary", use_container_width=True):
+                new_tasks = import_tasks_from_excel(uploaded_file)
+                
+                if new_tasks:
+                    # Добавляем новые задачи к существующим
+                    max_id = max([t["id"] for t in st.session_state.tasks], default=0)
+                    for i, task in enumerate(new_tasks):
+                        task["id"] = max_id + i + 1
+                        st.session_state.tasks.append(task)
+                    
+                    save_tasks_to_file(st.session_state.tasks)
+                    st.success(f"✅ Импортировано {len(new_tasks)} задач!")
+                    st.info("💡 Перейдите в раздел '📋 Список задач' чтобы увидеть импортированные задачи")
+                else:
+                    st.warning("⚠️ Не удалось импортировать задачи. Проверьте формат файла.")
+    
+    st.markdown("---")
+    st.markdown("### 📋 Шаблон содержит следующие поля:")
+    st.markdown("""
+    - **Название** — название инициативы
+    - **Инициатор** — ФИО ответственного
+    - **Тип задачи** — Бизнес-фича / Улучшение / Регуляторка / Техдолг
+    - **Проблема/Возможность** — что сейчас не так
+    - **Целевая аудитория** — для кого делаем
+    - **Метрики успеха** — как измерим успех
+    - **Бизнес цель** — KPI/КПЭ
+    - **Что будет если не сделать?** — влияние на бизнес
+    - **Основной сценарий** — Кто → Что делает → Результат
+    - **Срочность** — High / Medium / Low
+    - **Бизнес-ценность** — High / Medium / Low
+    - **Сложность/Ёмкость** — S / M / L / XL / XXL
+    """)
