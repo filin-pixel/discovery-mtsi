@@ -532,9 +532,7 @@ if page == "📋 Список задач":
                     status_emoji = {"Idea": "⚪", "In Discovery": "🔵", "Ready for Analyst": "🟠", "Requirements Clarification": "🟣", "Ready for Refinement": "✅"}[task["status"]]
                     value_emoji = {"High": "🔴", "Medium": "🟡", "Low": "🟢"}.get(task["business_value"], "⚪")
                     urgency_emoji = {"High": "🔴", "Medium": "🟡", "Low": "🟢"}.get(task.get("urgency"), "⚪")
-                    exec_badge = " 👑"
-                    if task.get("executive_priority")
-                    else ""
+                    exec_badge = " 👑" if task.get("executive_priority") else ""
                     priority_display = task.get("priority", "")
                     or "—"
                     c1, c2, c3, c4, c5, c6 = st.columns([4, 2, 1.3, 1.3, 1, 1])
