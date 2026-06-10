@@ -515,7 +515,17 @@ if page == "📋 Список задач":
                     
                     exec_badge = " 👑" if task.get("executive_priority") else ""
                     
-                    with st.expander(f"{value_emoji} **{task['title']}**  │  {status_emoji} `{task['status']}`  │  💎 {task.get('business_value', '')}  │  ⏱ {task.get('complexity', '')}{exec_badge}"):
+                    with st.expander(f"**{task['title']}**{exec_badge}"):
+                        # Фиксированные колонки для выравнивания
+                        col_info1, col_info2, col_info3, col_info4 = st.columns([3, 2, 1.5, 1.5])
+                        with col_info1:
+                            st.markdown(f"{value_emoji} **{task['title']}**")
+                        with col_info2:
+                            st.markdown(f"{status_emoji} `{task['status']}`")
+                        with col_info3:
+                            st.markdown(f"💎 {task.get('business_value', '')}")
+                        with col_info4:
+                            st.markdown(f"⏱ {task.get('complexity', '')}")
                         st.markdown("**📊 Прогресс заполнения:**")
                         col1, col2 = st.columns(2)
                         with col1:
