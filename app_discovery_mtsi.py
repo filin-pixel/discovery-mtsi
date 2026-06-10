@@ -25,6 +25,7 @@ DEMO_TASKS = [
         "technical_estimate": "",
         "detailed_dependencies": "",
         "analyst_deadline": "",
+        "priority": "",
         "urgency": "High",
         "business_value": "Medium",
         "complexity": "S",
@@ -51,12 +52,13 @@ ANALYST_FIELDS = {
     "detailed_dependencies": "Детальные технические зависимости"
 }
 
-OPTIONAL_FIELDS = {
-    "as_is": "As Is (как сейчас)",
-    "to_be": "To Be (как должно быть)",
-    "dependencies": "Зависимости (высокоуровневые)",
-    "constraints": "Ограничения",
-    "risks": "Риски"
+# Ёмкость в днях и спринтах (спринт = 10 дней)
+COMPLEXITY_INFO = {
+    "S": {"days": "< 5 дней", "sprints": "< 0.5 спринта", "description": "Небольшая задача"},
+    "M": {"days": "5-10 дней", "sprints": "0.5-1 спринт", "description": "Средняя задача"},
+    "L": {"days": "10-20 дней", "sprints": "1-2 спринта", "description": "Большая задача"},
+    "XL": {"days": "20-40 дней", "sprints": "2-4 спринта", "description": "Очень большая задача"},
+    "XXL": {"days": "40+ дней", "sprints": "4+ спринтов", "description": "Эпическая задача"}
 }
 
 def check_readiness(task):
@@ -86,10 +88,13 @@ if "tasks" not in st.session_state:
 if "editing_task_id" not in st.session_state:
     st.session_state.editing_task_id = None
 
+if "show_new_task_form" not in st.session_state:
+    st.session_state.show_new_task_form = False
+
 st.title("🚀 Discovery Manager")
 st.markdown("Конвейер спринтов: Этап Discovery")
 
-page = st.sidebar.radio("Навигация", ["📋 Список задач", "➕ Новая задача"])
+page = st.sidebar.radio("Навигация", ["📋 Список задач", "➕ Новая задача", "📊 Приоритезация задач"])
 
 # ================= ИНСТРУКЦИЯ =================
 with st.expander("ℹ️ Как пользоваться Discovery Manager", expanded=False):
@@ -109,40 +114,53 @@ with st.expander("ℹ️ Как пользоваться Discovery Manager", exp
     - Статусы меняются автоматически или вручную
     """)
 
-# ================= ЛЕГЕНДА =================
-st.markdown("### 📖 Легенда")
+# ================= ЛЕГЕНДА (только для списка задач и приоритезации) =================
+if page in ["📋 Список задач", "📊 Приоритезация задач"]:
+    st.markdown("### 📖 Легенда")
 
-col_legend1, col_legend2, col_legend3 = st.columns(3)
+    col_legend1, col_legend2, col_legend3, col_legend4 = st.columns(4)
 
-with col_legend1:
-    st.markdown("** Статусы задач:**")
-    st.markdown("""
-    - ⚪ **Idea** — сырая идея, не обсуждали
-    - 🔵 **In Discovery** — бизнес заполняет шаблон
-    - 🟠 **Ready for Analyst** — готово к передаче аналитику
-    - 🟣 **Requirements Clarification** — аналитик уточняет требования
-    - ✅ **Ready for Refinement** — готово к бэклог-рефайнменту
-    """)
+    with col_legend1:
+        st.markdown("**📌 Статусы задач:**")
+        st.markdown("""
+        - ⚪ **Idea** — сырая идея
+        -  **In Discovery** — бизнес заполняет шаблон
+        - 🟠 **Ready for Analyst** — готово к передаче аналитику
+        - 🟣 **Requirements Clarification** — аналитик уточняет требования
+        - ✅ **Ready for Refinement** — готово к бэклог-рефайнменту
+        """)
 
-with col_legend2:
-    st.markdown("** Приоритеты:**")
-    st.markdown("""
-    - 🔴 **High** — критично, высокий приоритет
-    -  **Medium** — средне
-    - 🟢 **Low** — низко, можно отложить
-    """)
+    with col_legend2:
+        st.markdown("**🔥 Приоритеты:**")
+        st.markdown("""
+        - 🔴 **High** — критично
+        - 🟡 **Medium** — средне
+        - 🟢 **Low** — низко
+        """)
 
-with col_legend3:
-    st.markdown("**📏 Ёмкость (T-shirt sizing):**")
-    st.markdown("""
-    - **XS** — очень маленькая (< 1 дня)
-    - **S** — маленькая (1-3 дня)
-    - **M** — средняя (3-5 дней)
-    - **L** — большая (1-2 недели)
-    - **XL** — очень большая (2+ недели)
-    """)
+    with col_legend3:
+        st.markdown("**📏 Ёмкость (T-shirt sizing):**")
+        st.markdown("""
+        - **S** — < 5 дней (< 0.5 спринта)
+        - **M** — 5-10 дней (0.5-1 спринт)
+        - **L** — 10-20 дней (1-2 спринта)
+        - **XL** — 20-40 дней (2-4 спринта)
+        - **XXL** — 40+ дней (4+ спринтов)
+        
+        *Спринт = 10 дней*
+        """)
 
-st.markdown("---")
+    with col_legend4:
+        st.markdown("** Приоритет:**")
+        st.markdown("""
+        Заполняется отдельно в разделе **"📊 Приоритезация задач"** на основе:
+        - Business Value
+        - Срочности
+        - мкости
+        - Стратегической важности
+        """)
+
+    st.markdown("---")
 
 # ================= ЭКРАН 1: СПИСОК ЗАДАЧ =================
 if page == "📋 Список задач":
@@ -150,7 +168,7 @@ if page == "📋 Список задач":
         task_to_edit = next((t for t in st.session_state.tasks if t["id"] == st.session_state.editing_task_id), None)
         
         if task_to_edit:
-            st.header(f"️ Редактирование: {task_to_edit['title']}")
+            st.header(f"✏️ Редактирование: {task_to_edit['title']}")
             
             with st.form("edit_task_form"):
                 st.subheader("📌 Базовая информация")
@@ -162,7 +180,7 @@ if page == "📋 Список задач":
                 with col2:
                     owner = st.text_input("Инициатор/Владелец", value=task_to_edit.get("owner", ""))
                 
-                st.subheader("💼 Бизнес-контекст (заполняет инициатор)")
+                st.subheader(" Бизнес-контекст (заполняет инициатор)")
                 problem = st.text_area("Проблема/Возможность", value=task_to_edit.get("problem", ""), height=80)
                 
                 col1, col2 = st.columns(2)
@@ -181,7 +199,7 @@ if page == "📋 Список задач":
                 with col2:
                     use_cases = st.text_area("Основной сценарий", value=task_to_edit.get("use_cases", ""), height=80)
                 
-                st.subheader("⚠️ Ограничения и зависимости")
+                st.subheader("️ Ограничения и зависимости")
                 col1, col2, col3 = st.columns(3)
                 with col1:
                     dependencies = st.text_area("Зависимости", value=task_to_edit.get("dependencies", ""), height=80)
@@ -197,16 +215,16 @@ if page == "📋 Список задач":
                     detailed_dependencies = st.text_area("Детальные технические зависимости", value=task_to_edit.get("detailed_dependencies", ""), height=80)
                 with col2:
                     subtasks = st.text_area("Декомпозиция на подзадачи", value=task_to_edit.get("subtasks", ""), height=80)
-                    technical_estimate = st.text_area("Техническая оценка (story points)", value=task_to_edit.get("technical_estimate", ""), height=80)
+                    technical_estimate = st.text_area("Техническая оценка", value=task_to_edit.get("technical_estimate", ""), height=80)
                 
                 if task_to_edit["status"] in ["Ready for Analyst", "Requirements Clarification"]:
                     st.subheader("📅 Срок анализа")
-                    analyst_deadline = st.date_input("Срок, до которого аналитик должен завершить анализ", 
-                                                    value=datetime.strptime(task_to_edit.get("analyst_deadline", "2026-06-17"), "%Y-%m-%d").date() if task_to_edit.get("analyst_deadline") else datetime.now() + timedelta(days=7))
+                    default_date = datetime.strptime(task_to_edit.get("analyst_deadline", "2026-06-17"), "%Y-%m-%d").date() if task_to_edit.get("analyst_deadline") else datetime.now() + timedelta(days=7)
+                    analyst_deadline = st.date_input("Срок, до которого аналитик должен завершить анализ", value=default_date)
                 else:
                     analyst_deadline = None
                 
-                st.subheader("📊 Приоритизация")
+                st.subheader(" Приоритизация")
                 col1, col2, col3 = st.columns(3)
                 with col1:
                     urgency = st.selectbox("Срочность", ["High", "Medium", "Low"],
@@ -215,14 +233,17 @@ if page == "📋 Список задач":
                     business_value = st.selectbox("Бизнес-ценность", ["High", "Medium", "Low"],
                                                  index=["High", "Medium", "Low"].index(task_to_edit.get("business_value", "Medium")))
                 with col3:
-                    complexity = st.selectbox("Сложность", ["XS", "S", "M", "L", "XL"],
-                                             index=["XS", "S", "M", "L", "XL"].index(task_to_edit.get("complexity", "M")))
+                    complexity = st.selectbox("Сложность (ёмкость)", ["S", "M", "L", "XL", "XXL"],
+                                             index=["S", "M", "L", "XL", "XXL"].index(task_to_edit.get("complexity", "M")))
+                    if complexity in COMPLEXITY_INFO:
+                        info = COMPLEXITY_INFO[complexity]
+                        st.caption(f"{info['days']} | {info['sprints']}")
                 
                 col1, col2 = st.columns(2)
                 with col1:
-                    submitted = st.form_submit_button(" Сохранить изменения", type="primary")
+                    submitted = st.form_submit_button("💾 Сохранить изменения", type="primary")
                 with col2:
-                    cancelled = st.form_submit_button("❌ Отмена")
+                    cancelled = st.form_submit_button(" Отмена")
                 
                 if submitted:
                     task_to_edit["title"] = title
@@ -288,15 +309,18 @@ if page == "📋 Список задач":
                 
                 status_emoji = {
                     "Idea": "⚪",
-                    "In Discovery": "🔵",
-                    "Ready for Analyst": "🟠",
-                    "Requirements Clarification": "🟣",
+                    "In Discovery": "",
+                    "Ready for Analyst": "",
+                    "Requirements Clarification": "",
                     "Ready for Refinement": "✅"
                 }[task["status"]]
                 
-                value_emoji = {"High": "🔴", "Medium": "", "Low": "🟢"}[task["business_value"]]
+                value_emoji = {"High": "🔴", "Medium": "🟡", "Low": "🟢"}[task["business_value"]]
                 
-                with st.expander(f"{value_emoji} **{task['title']}** {status_emoji} `{task['status']}`"):
+                # Показываем приоритет если есть
+                priority_display = f" |  {task.get('priority', '')}" if task.get("priority") else ""
+                
+                with st.expander(f"{value_emoji} **{task['title']}** {status_emoji} `{task['status']}`{priority_display}"):
                     st.markdown("**📊 Прогресс заполнения:**")
                     col1, col2 = st.columns(2)
                     with col1:
@@ -335,8 +359,12 @@ if page == "📋 Список задач":
                     with col2:
                         st.markdown(f"**Срочность:** {task.get('urgency', 'Medium')}")
                         st.markdown(f"**Сложность:** {task.get('complexity', 'M')}")
+                        if task.get("complexity") in COMPLEXITY_INFO:
+                            info = COMPLEXITY_INFO[task["complexity"]]
+                            st.caption(f"{info['days']} | {info['sprints']}")
                     with col3:
                         st.markdown(f"**Бизнес-ценность:** {task.get('business_value', 'Medium')}")
+                        st.markdown(f"**Приоритет:** {task.get('priority', '') or 'Не заполнен'}")
                         st.markdown(f"**Создана:** {task.get('created_date', 'Не указана')}")
                     
                     st.markdown("---")
@@ -368,7 +396,7 @@ if page == "📋 Список задач":
                     st.markdown(f"**Критерии приемки (DoD):** {task.get('acceptance_criteria', '') or '⚠️ Не заполнено'}")
                     st.markdown(f"**Декомпозиция на подзадачи:** {task.get('subtasks', '') or '⚠️ Не заполнено'}")
                     st.markdown(f"**Техническая оценка:** {task.get('technical_estimate', '') or '⚠️ Не заполнено'}")
-                    st.markdown(f"**Детальные зависимости:** {task.get('detailed_dependencies', '') or '⚠️ Не заполнено'}")
+                    st.markdown(f"**Детальные зависимости:** {task.get('detailed_dependencies', '') or '️ Не заполнено'}")
                     
                     st.markdown("---")
                     
@@ -394,77 +422,150 @@ if page == "📋 Список задач":
                             st.session_state.tasks = [t for t in st.session_state.tasks if t["id"] != task["id"]]
                             st.rerun()
 
-# ================= ЭКРАН 2: НОВАЯ ЗАДАЧА (только поля инициатора) =================
+# ================= ЭКРАН 2: НОВАЯ ЗАДАЧА =================
 elif page == "➕ Новая задача":
-    st.header("Создание инициативы")
-    st.markdown("💡 **Совет:** Задачу можно создать с любым количеством полей. Система покажет, что нужно дополнить.")
-    
-    with st.form("new_task"):
-        st.subheader("📌 Базовая информация")
-        col1, col2 = st.columns(2)
-        with col1:
-            title = st.text_input("Название *", placeholder="Краткое название")
-            task_type = st.selectbox("Тип", ["Бизнес-фича", "Улучшение", "Техдолг", "Регуляторика"])
+    if not st.session_state.show_new_task_form:
+        # Показываем только кнопку
+        st.header("Создание новой инициативы")
+        st.markdown("""
+        💡 **Как это работает:**
+        1. Нажми кнопку ниже
+        2. Заполни основную информацию о задаче
+        3. Система создаст задачу со статусом **Idea**
+        4. Дополни детали через редактирование в списке задач
+        """)
+        
+        st.markdown("---")
+        
+        col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
-            owner = st.text_input("Инициатор/Владелец", placeholder="ФИО")
-        
-        st.subheader("💼 Бизнес-контекст")
-        problem = st.text_area("Проблема/Возможность", placeholder="Что не так сейчас?", height=80)
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            audience = st.text_area("Целевая аудитория", placeholder="Для кого делаем?", height=80)
-            business_goal = st.text_area("Бизнес-цель", placeholder="Зачем это нужно?", height=80)
-        with col2:
-            metrics = st.text_area("Метрики успеха", placeholder="Как поймем успех?", height=80)
-            impact = st.text_area("Что будет если не сделать", placeholder="Влияние на бизнес", height=80)
-        
-        st.subheader(" Основной сценарий")
-        use_cases = st.text_area("Кто → Что делает → Результат", placeholder="Клиент → Открывает приложение → Видит портфель", height=80)
-        
-        st.subheader(" Приоритизация")
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            urgency = st.selectbox("Срочность", ["High", "Medium", "Low"])
-        with col2:
-            business_value = st.selectbox("Бизнес-ценность", ["High", "Medium", "Low"])
-        with col3:
-            complexity = st.selectbox("Сложность", ["XS", "S", "M", "L", "XL"])
-        
-        submitted = st.form_submit_button("✅ Создать задачу", type="primary")
-        
-        if submitted:
-            if title:
-                new_task = {
-                    "id": len(st.session_state.tasks) + 1,
-                    "title": title,
-                    "type": task_type,
-                    "problem": problem,
-                    "audience": audience,
-                    "business_goal": business_goal,
-                    "metrics": metrics,
-                    "impact": impact,
-                    "as_is": "",
-                    "to_be": "",
-                    "use_cases": use_cases,
-                    "dependencies": "",
-                    "constraints": "",
-                    "risks": "",
-                    "acceptance_criteria": "",
-                    "subtasks": "",
-                    "technical_estimate": "",
-                    "detailed_dependencies": "",
-                    "analyst_deadline": "",
-                    "urgency": urgency,
-                    "business_value": business_value,
-                    "complexity": complexity,
-                    "status": "Idea",
-                    "owner": owner,
-                    "created_date": datetime.now().strftime("%Y-%m-%d")
-                }
-                
-                st.session_state.tasks.append(new_task)
-                st.success(f"✅ Задача '{title}' создана!")
+            if st.button(" Создать задачу", type="primary", use_container_width=True):
+                st.session_state.show_new_task_form = True
                 st.rerun()
-            else:
-                st.error("❌ Укажи название задачи")
+    else:
+        # Показываем форму
+        st.header("Создание инициативы")
+        
+        if st.button("← Назад к кнопке"):
+            st.session_state.show_new_task_form = False
+            st.rerun()
+        
+        with st.form("new_task"):
+            st.subheader("📌 Базовая информация")
+            col1, col2 = st.columns(2)
+            with col1:
+                title = st.text_input("Название *", placeholder="Краткое название")
+                task_type = st.selectbox("Тип", ["Бизнес-фича", "Улучшение", "Техдолг", "Регуляторика"])
+            with col2:
+                owner = st.text_input("Инициатор/Владелец", placeholder="ФИО")
+            
+            st.subheader("💼 Бизнес-контекст")
+            problem = st.text_area("Проблема/Возможность", placeholder="Что не так сейчас?", height=80)
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                audience = st.text_area("Целевая аудитория", placeholder="Для кого делаем?", height=80)
+                business_goal = st.text_area("Бизнес-цель", placeholder="Зачем это нужно?", height=80)
+            with col2:
+                metrics = st.text_area("Метрики успеха", placeholder="Как поймем успех?", height=80)
+                impact = st.text_area("Что будет если не сделать", placeholder="Влияние на бизнес", height=80)
+            
+            st.subheader(" Основной сценарий")
+            use_cases = st.text_area("Кто → Что делает → Результат", placeholder="Клиент → Открывает приложение → Видит портфель", height=80)
+            
+            st.subheader("📊 Приоритизация")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                urgency = st.selectbox("Срочность", ["High", "Medium", "Low"])
+            with col2:
+                business_value = st.selectbox("Бизнес-ценность", ["High", "Medium", "Low"])
+            with col3:
+                complexity = st.selectbox("Сложность (ёмкость)", ["S", "M", "L", "XL", "XXL"])
+                if complexity in COMPLEXITY_INFO:
+                    info = COMPLEXITY_INFO[complexity]
+                    st.caption(f"{info['days']} | {info['sprints']}")
+            
+            submitted = st.form_submit_button("✅ Создать задачу", type="primary")
+            
+            if submitted:
+                if title:
+                    new_task = {
+                        "id": len(st.session_state.tasks) + 1,
+                        "title": title,
+                        "type": task_type,
+                        "problem": problem,
+                        "audience": audience,
+                        "business_goal": business_goal,
+                        "metrics": metrics,
+                        "impact": impact,
+                        "as_is": "",
+                        "to_be": "",
+                        "use_cases": use_cases,
+                        "dependencies": "",
+                        "constraints": "",
+                        "risks": "",
+                        "acceptance_criteria": "",
+                        "subtasks": "",
+                        "technical_estimate": "",
+                        "detailed_dependencies": "",
+                        "analyst_deadline": "",
+                        "priority": "",
+                        "urgency": urgency,
+                        "business_value": business_value,
+                        "complexity": complexity,
+                        "status": "Idea",
+                        "owner": owner,
+                        "created_date": datetime.now().strftime("%Y-%m-%d")
+                    }
+                    
+                    st.session_state.tasks.append(new_task)
+                    st.session_state.show_new_task_form = False
+                    st.success(f"✅ Задача '{title}' создана!")
+                    st.rerun()
+                else:
+                    st.error("❌ Укажи название задачи")
+
+# ================= ЭКРАН 3: ПРИОРИТЕЗАЦИЯ ЗАДАЧ =================
+elif page == " Приоритезация задач":
+    st.header("Приоритезация задач")
+    st.markdown("Здесь определяется финальный приоритет задач на основе бизнес-ценности, срочности и ёмкости.")
+    
+    if not st.session_state.tasks:
+        st.info("Нет задач для приоритезации")
+    else:
+        st.markdown("""
+        **Как определять приоритет:**
+        - **P1** — критично, делаем в первую очередь
+        - **P2** — важно, делаем во вторую очередь
+        - **P3** — желательно, делаем когда есть ресурсы
+        - **P4** — можно отложить
+        """)
+        
+        st.markdown("---")
+        
+        for task in st.session_state.tasks:
+            col1, col2, col3, col4 = st.columns([3, 1, 1, 2])
+            
+            with col1:
+                st.markdown(f"**{task['title']}**")
+                st.caption(f"Бизнес-ценность: {task.get('business_value', '')} | Срочность: {task.get('urgency', '')} | Ёмкость: {task.get('complexity', '')}")
+            
+            with col2:
+                st.caption("Текущий приоритет")
+                st.markdown(f"**{task.get('priority', '-') or '-'}**")
+            
+            with col3:
+                new_priority = st.selectbox(
+                    "Приоритет",
+                    ["", "P1", "P2", "P3", "P4"],
+                    index=["", "P1", "P2", "P3", "P4"].index(task.get("priority", "")),
+                    key=f"priority_{task['id']}",
+                    label_visibility="collapsed"
+                )
+            
+            with col4:
+                if new_priority != task.get("priority"):
+                    task["priority"] = new_priority
+                    st.success("Сохранено!")
+            
+            st.markdown("---")
