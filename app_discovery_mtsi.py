@@ -130,53 +130,68 @@ def download_template():
 def import_tasks_from_excel(uploaded_file):
     """Импортирует задачи из Excel файла"""
     try:
-        df = pd.read_excel(uploaded_file)
+        # Читаем Excel
+        df = pd.read_excel(uploaded_file, sheet_name=0)
+        
+        # Показываем какие колонки найдены (для отладки)
+        st.write("📋 Найдены колонки:", list(df.columns))
+        
         tasks = []
         
+        # Проходим по всем строкам
         for idx, row in df.iterrows():
-            title = str(row.get("Название", "")).strip() if pd.notna(row.get("Название")) else ""
+            # Пропускаем заголовок и пустые строки
+            if idx == 0:
+                continue
+            # Получаем название - обязательное поле
+            title = str(row.iloc[0]).strip() if pd.notna(row.iloc[0]) else ""
             
-            if title:
-                task = {
-                    "id": idx + 1,
-                    "title": title,
-                    "owner": str(row.get("Инициатор", "")).strip() if pd.notna(row.get("Инициатор")) else "",
-                    "type": str(row.get("Тип задачи", "Бизнес-фича")).strip() if pd.notna(row.get("Тип задачи")) else "Бизнес-фича",
-                    "problem": str(row.get("Проблема/Возможность", "")).strip() if pd.notna(row.get("Проблема/Возможность")) else "",
-                    "audience": str(row.get("Целевая аудитория", "")).strip() if pd.notna(row.get("Целевая аудитория")) else "",
-                    "metrics": str(row.get("Метрики успеха", "")).strip() if pd.notna(row.get("Метрики успеха")) else "",
-                    "business_goal": str(row.get("Бизнес цель", "")).strip() if pd.notna(row.get("Бизнес цель")) else "",
-                    "impact": str(row.get("Что будет если не сделать?", "")).strip() if pd.notna(row.get("Что будет если не сделать?")) else "",
-                    "use_cases": str(row.get("Основной сценарий", "")).strip() if pd.notna(row.get("Основной сценарий")) else "",
-                    "urgency": str(row.get("Срочность", "Medium")).strip() if pd.notna(row.get("Срочность")) else "Medium",
-                    "business_value": str(row.get("Бизнес-ценность", "Medium")).strip() if pd.notna(row.get("Бизнес-ценность")) else "Medium",
-                    "complexity": str(row.get("Сложность/Ёмкость", "M")).strip() if pd.notna(row.get("Сложность/Ёмкость")) else "M",
-                    "as_is": "",
-                    "to_be": "",
-                    "dependencies": "",
-                    "constraints": "",
-                    "risks": "",
-                    "acceptance_criteria": "",
-                    "subtasks": "",
-                    "technical_estimate": "",
-                    "detailed_dependencies": "",
-                    "analyst_deadline": "",
-                    "priority": "",
-                    "rice_score": 0,
-                    "reach": 0,
-                    "impact_rice": 0,
-                    "confidence": 0,
-                    "effort": 0,
-                    "executive_priority": False,
-                    "status": "Idea",
-                    "created_date": datetime.now().strftime("%Y-%m-%d"),
-                    "prioritized_at": ""
-                }
-                tasks.append(task)
-        
+            if not title or title == "nan":
+                continue
+            
+            # Получаем данные из колонок по индексу (более надежно)
+            task = {
+                "id": idx,
+                "title": title,
+                "owner": str(row.iloc[1]).strip() if pd.notna(row.iloc[1]) and len(row) > 1 else "",
+                "type": str(row.iloc[2]).strip() if pd.notna(row.iloc[2]) and len(row) > 2 else "Бизнес-фича",
+                "problem": str(row.iloc[3]).strip() if pd.notna(row.iloc[3]) and len(row) > 3 else "",
+                "audience": str(row.iloc[4]).strip() if pd.notna(row.iloc[4]) and len(row) > 4 else "",
+                "metrics": str(row.iloc[5]).strip() if pd.notna(row.iloc[5]) and len(row) > 5 else "",
+                "business_goal": str(row.iloc[6]).strip() if pd.notna(row.iloc[6]) and len(row) > 6 else "",
+                "impact": str(row.iloc[7]).strip() if pd.notna(row.iloc[7]) and len(row) > 7 else "",
+                "use_cases": str(row.iloc[8]).strip() if pd.notna(row.iloc[8]) and len(row) > 8 else "",
+                "urgency": str(row.iloc[9]).strip().lower() if pd.notna(row.iloc[9]) and len(row) > 9 else "medium",
+                "business_value": str(row.iloc[10]).strip().lower() if pd.notna(row.iloc[10]) and len(row) > 10 else "medium",
+                "complexity": str(row.iloc[11]).strip().upper() if pd.notna(row.iloc[11]) and len(row) > 11 else "M",
+                "as_is": "",
+                "to_be": "",
+                "dependencies": "",
+                "constraints": "",
+                "risks": "",
+                "acceptance_criteria": "",
+                "subtasks": "",
+                "technical_estimate": "",
+                "detailed_dependencies": "",
+                "analyst_deadline": "",
+                "priority": "",
+                "rice_score": 0,
+                "reach": 0,
+                "impact_rice": 0,
+                "confidence": 0,
+                "effort": 0,
+                "executive_priority": False,
+                "status": "Idea",
+                "created_date": datetime.now().strftime("%Y-%m-%d"),
+                "prioritized_at": ""
+            }
+            tasks.append(task)
         return tasks
     except Exception as e:
-        st.error(f"Ошибка импорта: {e}")
+        st.error(f"❌ Ошибка импорта: {str(e)}")
+        st.error(f"Тип ошибки: {type(e).__name__}")
+        import traceback
+        st.code(traceback.format_exc())
         return []
 
 def generate_confluence_text(task):
