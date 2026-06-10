@@ -1,64 +1,12 @@
 import streamlit as st
-from datetime import datetime
+from datetime import datetime, timedelta
 
 st.set_page_config(page_title="Discovery Manager", page_icon="🚀", layout="wide")
 
-# ================= ДЕМО-ДАННЫЕ (из реального Excel) =================
+# ================= ДЕМО-ДАННЫЕ (одна задача) =================
 DEMO_TASKS = [
     {
         "id": 1,
-        "title": "Инвесткопилка",
-        "type": "Бизнес-фича",
-        "problem": "Нет автоматического инвестирования небольших сумм",
-        "audience": "Клиенты МТС Инвестиций",
-        "business_goal": "Увеличить AUM и количество активных клиентов",
-        "metrics": "AUM, фондированные и активные клиенты",
-        "impact": "Потеря клиентов, которые хотят инвестировать по чуть-чуть",
-        "as_is": "Клим + Саша Стояновский делают прототип и исследование",
-        "to_be": "Автоматическое инвестирование округленных сумм",
-        "use_cases": "Клиент → Подключает инвесткопилку → Система автоматически инвестирует округления",
-        "dependencies": "Зависит от механики (iOS, web ЛК, комиссия, МТСИ)",
-        "constraints": "Желательно не создавать новые договоры/счета",
-        "risks": "Сложность с выходными днями и расчетами",
-        "acceptance_criteria": "",
-        "subtasks": "",
-        "technical_estimate": "",
-        "detailed_dependencies": "",
-        "urgency": "High",
-        "business_value": "High",
-        "complexity": "XL",
-        "status": "In Discovery",
-        "owner": "Клим + Саша Стояновский",
-        "created_date": "2026-06-10"
-    },
-    {
-        "id": 2,
-        "title": "СБП по ценным бумагам",
-        "type": "Регуляторика",
-        "problem": "Регуляторное требование с 01.09",
-        "audience": "Все клиенты",
-        "business_goal": "Соответствие регуляторным требованиям",
-        "metrics": "Регуляторка + потенциально AUM",
-        "impact": "Штрафы от регулятора",
-        "as_is": "Нужно посмотреть макеты и направить в Депозитарий",
-        "to_be": "Интеграция с СБП для операций с ценными бумагами",
-        "use_cases": "Клиент → Выбирает СБП → Совершает операцию с ЦБ",
-        "dependencies": "Общебанк, Депозитарий",
-        "constraints": "Срок до 01.09",
-        "risks": "Задержка от Депозитария",
-        "acceptance_criteria": "",
-        "subtasks": "",
-        "technical_estimate": "",
-        "detailed_dependencies": "",
-        "urgency": "High",
-        "business_value": "High",
-        "complexity": "XL",
-        "status": "Ready for Analyst",
-        "owner": "",
-        "created_date": "2026-06-10"
-    },
-    {
-        "id": 3,
         "title": "Пополнение в выходной день",
         "type": "Улучшение",
         "problem": "Клиенты не могут пополнить счет в выходные",
@@ -68,7 +16,7 @@ DEMO_TASKS = [
         "impact": "Недовольство клиентов",
         "as_is": "Пополнение только в рабочие дни",
         "to_be": "Пополнение 24/7 без вывода день в день",
-        "use_cases": "Клиент → Выходной день → Пополняет счет",
+        "use_cases": "Клиент → Выходной день → Пополняет счет → Средства зачисляются в понедельник",
         "dependencies": "Нет",
         "constraints": "Без вывода день в день",
         "risks": "Не учитывается сумма пополнения в общей сумме инвестиций",
@@ -76,88 +24,11 @@ DEMO_TASKS = [
         "subtasks": "",
         "technical_estimate": "",
         "detailed_dependencies": "",
+        "analyst_deadline": "",
         "urgency": "High",
         "business_value": "Medium",
         "complexity": "S",
         "status": "In Discovery",
-        "owner": "",
-        "created_date": "2026-06-10"
-    },
-    {
-        "id": 4,
-        "title": "Отображение налога при выводе",
-        "type": "Улучшение",
-        "problem": "Клиент не видит налог при выводе средств",
-        "audience": "Все клиенты",
-        "business_goal": "Улучшить NPS",
-        "metrics": "NPS",
-        "impact": "Недовольство клиентов при выводе",
-        "as_is": "Налог не показывается на экране вывода",
-        "to_be": "Предрасчет налога на экране вывода ДС",
-        "use_cases": "Клиент → Выводит ДС → Видит примерную сумму налога",
-        "dependencies": "Бэкофис, ЦФТ, ВАТ, МТСИ, Налоговики",
-        "constraints": "",
-        "risks": "",
-        "acceptance_criteria": "",
-        "subtasks": "",
-        "technical_estimate": "",
-        "detailed_dependencies": "",
-        "urgency": "Medium",
-        "business_value": "Medium",
-        "complexity": "XL",
-        "status": "Idea",
-        "owner": "",
-        "created_date": "2026-06-10"
-    },
-    {
-        "id": 5,
-        "title": "Покупка инструментов с карты МТС Банка",
-        "type": "Бизнес-фича",
-        "problem": "Нельзя купить инструмент напрямую с карты",
-        "audience": "Клиенты МТС Банка",
-        "business_goal": "Увеличить AUM и активных клиентов",
-        "metrics": "AUM, фондированные и активные клиенты",
-        "impact": "Упущенная выручка",
-        "as_is": "Сначала пополнение БС, потом покупка",
-        "to_be": "Покупка инструмента напрямую с карты",
-        "use_cases": "Клиент → Выбирает инструмент → Оплачивает картой",
-        "dependencies": "МТС Банк",
-        "constraints": "",
-        "risks": "Списали с карты, но не зачислили на БС",
-        "acceptance_criteria": "",
-        "subtasks": "",
-        "technical_estimate": "",
-        "detailed_dependencies": "",
-        "urgency": "Medium",
-        "business_value": "High",
-        "complexity": "XL",
-        "status": "In Discovery",
-        "owner": "",
-        "created_date": "2026-06-10"
-    },
-    {
-        "id": 6,
-        "title": "Эдвайзери",
-        "type": "Бизнес-фича",
-        "problem": "Нет сервиса персональных рекомендаций",
-        "audience": "Клиенты",
-        "business_goal": "Опер.Доход, AUM",
-        "metrics": "Опер.Доход, AUM",
-        "impact": "Упущенная выручка",
-        "as_is": "Клиент сам выбирает инструменты",
-        "to_be": "Персональные рекомендации от сервиса",
-        "use_cases": "Клиент → Получает рекомендацию → Покупает",
-        "dependencies": "",
-        "constraints": "",
-        "risks": "",
-        "acceptance_criteria": "",
-        "subtasks": "",
-        "technical_estimate": "",
-        "detailed_dependencies": "",
-        "urgency": "Low",
-        "business_value": "High",
-        "complexity": "XL",
-        "status": "Idea",
         "owner": "",
         "created_date": "2026-06-10"
     }
@@ -196,7 +67,7 @@ def check_readiness(task):
     business_progress = len(filled_business) / len(BUSINESS_FIELDS)
     analyst_progress = len(filled_analyst) / len(ANALYST_FIELDS)
     
-    is_ready_for_analyst = business_progress >= 0.83  # 5 из 6 полей = 83%
+    is_ready_for_analyst = business_progress >= 0.83
     
     return {
         "business_progress": business_progress,
@@ -220,7 +91,7 @@ st.markdown("Конвейер спринтов: Этап Discovery")
 
 page = st.sidebar.radio("Навигация", ["📋 Список задач", "➕ Новая задача"])
 
-# ================= ИНСТРУКЦИЯ (всегда видна) =================
+# ================= ИНСТРУКЦИЯ =================
 with st.expander("ℹ️ Как пользоваться Discovery Manager", expanded=False):
     st.markdown("""
     **🎯 Цель этапа Discovery:** Превратить сырую идею в задачу, готовую к передаче аналитику.
@@ -238,7 +109,7 @@ with st.expander("ℹ️ Как пользоваться Discovery Manager", exp
     - Статусы меняются автоматически или вручную
     """)
 
-# ================= ЛЕГЕНДА (всегда видна, красивая) =================
+# ================= ЛЕГЕНДА =================
 st.markdown("### 📖 Легенда")
 
 col_legend1, col_legend2, col_legend3 = st.columns(3)
@@ -254,10 +125,10 @@ with col_legend1:
     """)
 
 with col_legend2:
-    st.markdown("**🔥 Приоритеты:**")
+    st.markdown("** Приоритеты:**")
     st.markdown("""
     - 🔴 **High** — критично, высокий приоритет
-    - 🟡 **Medium** — средне
+    -  **Medium** — средне
     - 🟢 **Low** — низко, можно отложить
     """)
 
@@ -275,12 +146,11 @@ st.markdown("---")
 
 # ================= ЭКРАН 1: СПИСОК ЗАДАЧ =================
 if page == "📋 Список задач":
-    # Если редактируем задачу - показываем форму редактирования
     if st.session_state.editing_task_id is not None:
         task_to_edit = next((t for t in st.session_state.tasks if t["id"] == st.session_state.editing_task_id), None)
         
         if task_to_edit:
-            st.header(f"✏️ Редактирование: {task_to_edit['title']}")
+            st.header(f"️ Редактирование: {task_to_edit['title']}")
             
             with st.form("edit_task_form"):
                 st.subheader("📌 Базовая информация")
@@ -311,7 +181,7 @@ if page == "📋 Список задач":
                 with col2:
                     use_cases = st.text_area("Основной сценарий", value=task_to_edit.get("use_cases", ""), height=80)
                 
-                st.subheader("️ Ограничения и зависимости")
+                st.subheader("⚠️ Ограничения и зависимости")
                 col1, col2, col3 = st.columns(3)
                 with col1:
                     dependencies = st.text_area("Зависимости", value=task_to_edit.get("dependencies", ""), height=80)
@@ -320,7 +190,7 @@ if page == "📋 Список задач":
                 with col3:
                     risks = st.text_area("Риски", value=task_to_edit.get("risks", ""), height=80)
                 
-                st.subheader("🔧 Поля аналитика")
+                st.subheader("🔧 Поля аналитика (заполняет аналитик/чаттер-лид)")
                 col1, col2 = st.columns(2)
                 with col1:
                     acceptance_criteria = st.text_area("Критерии приемки (DoD)", value=task_to_edit.get("acceptance_criteria", ""), height=80)
@@ -328,6 +198,13 @@ if page == "📋 Список задач":
                 with col2:
                     subtasks = st.text_area("Декомпозиция на подзадачи", value=task_to_edit.get("subtasks", ""), height=80)
                     technical_estimate = st.text_area("Техническая оценка (story points)", value=task_to_edit.get("technical_estimate", ""), height=80)
+                
+                if task_to_edit["status"] in ["Ready for Analyst", "Requirements Clarification"]:
+                    st.subheader("📅 Срок анализа")
+                    analyst_deadline = st.date_input("Срок, до которого аналитик должен завершить анализ", 
+                                                    value=datetime.strptime(task_to_edit.get("analyst_deadline", "2026-06-17"), "%Y-%m-%d").date() if task_to_edit.get("analyst_deadline") else datetime.now() + timedelta(days=7))
+                else:
+                    analyst_deadline = None
                 
                 st.subheader("📊 Приоритизация")
                 col1, col2, col3 = st.columns(3)
@@ -343,9 +220,9 @@ if page == "📋 Список задач":
                 
                 col1, col2 = st.columns(2)
                 with col1:
-                    submitted = st.form_submit_button("💾 Сохранить изменения", type="primary")
+                    submitted = st.form_submit_button(" Сохранить изменения", type="primary")
                 with col2:
-                    cancelled = st.form_submit_button(" Отмена")
+                    cancelled = st.form_submit_button("❌ Отмена")
                 
                 if submitted:
                     task_to_edit["title"] = title
@@ -370,6 +247,9 @@ if page == "📋 Список задач":
                     task_to_edit["business_value"] = business_value
                     task_to_edit["complexity"] = complexity
                     
+                    if analyst_deadline:
+                        task_to_edit["analyst_deadline"] = analyst_deadline.strftime("%Y-%m-%d")
+                    
                     st.session_state.editing_task_id = None
                     st.success("✅ Изменения сохранены!")
                     st.rerun()
@@ -378,13 +258,11 @@ if page == "📋 Список задач":
                     st.session_state.editing_task_id = None
                     st.rerun()
     else:
-        # Обычный список задач
         st.header("Бэклог инициатив")
         
         if not st.session_state.tasks:
             st.info("Нет задач. Добавь первую!")
         else:
-            # Фильтры
             col1, col2 = st.columns(2)
             with col1:
                 status_filter = st.multiselect(
@@ -399,7 +277,6 @@ if page == "📋 Список задач":
                     default=["High", "Medium", "Low"]
                 )
             
-            # Фильтрация
             filtered = [t for t in st.session_state.tasks if t["status"] in status_filter and t["business_value"] in value_filter]
             filtered.sort(key=lambda x: {"High": 0, "Medium": 1, "Low": 2}.get(x["business_value"], 3))
             
@@ -420,19 +297,18 @@ if page == "📋 Список задач":
                 value_emoji = {"High": "🔴", "Medium": "", "Low": "🟢"}[task["business_value"]]
                 
                 with st.expander(f"{value_emoji} **{task['title']}** {status_emoji} `{task['status']}`"):
-                    # Прогресс-бары
                     st.markdown("**📊 Прогресс заполнения:**")
                     col1, col2 = st.columns(2)
                     with col1:
-                        st.progress(readiness["business_progress"], text=f"Бизнес-поля: {int(readiness['business_progress']*100)}%")
+                        st.progress(readiness["business_progress"], text=f"Бизнес-поля (инициатор): {int(readiness['business_progress']*100)}%")
                     with col2:
                         st.progress(readiness["analyst_progress"], text=f"Поля аналитика: {int(readiness['analyst_progress']*100)}%")
                     
-                    # Статус готовности
                     if readiness["is_ready_for_analyst"] and task["status"] == "In Discovery":
                         st.success("✅ Задача готова к передаче аналитику!")
                         if st.button("🚀 Передать аналитику", key=f"ready_{task['id']}", type="primary"):
                             task["status"] = "Ready for Analyst"
+                            task["analyst_deadline"] = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
                             st.rerun()
                     elif not readiness["is_ready_for_analyst"]:
                         missing = readiness["missing_business"]
@@ -440,13 +316,22 @@ if page == "📋 Список задач":
                             missing_names = [BUSINESS_FIELDS[f] for f in missing]
                             st.warning(f"⚠️ Не заполнены бизнес-поля: {', '.join(missing_names)}")
                     
+                    if task.get("analyst_deadline") and task["status"] in ["Ready for Analyst", "Requirements Clarification"]:
+                        deadline_date = datetime.strptime(task["analyst_deadline"], "%Y-%m-%d").date()
+                        days_left = (deadline_date - datetime.now().date()).days
+                        if days_left < 0:
+                            st.error(f"🚨 Срок анализа истек! Дедлайн был {task['analyst_deadline']}")
+                        elif days_left <= 2:
+                            st.warning(f"⏰ Срок анализа истекает через {days_left} дн. (дедлайн: {task['analyst_deadline']})")
+                        else:
+                            st.info(f"📅 Срок анализа: {task['analyst_deadline']} (осталось {days_left} дн.)")
+                    
                     st.markdown("---")
                     
-                    # Основная информация
                     col1, col2, col3 = st.columns(3)
                     with col1:
                         st.markdown(f"**Тип:** {task.get('type', 'Не указан')}")
-                        st.markdown(f"**Владелец:** {task.get('owner', 'Не указан') or 'Не указан'}")
+                        st.markdown(f"**Владелец:** {task.get('owner', '') or 'Не указан'}")
                     with col2:
                         st.markdown(f"**Срочность:** {task.get('urgency', 'Medium')}")
                         st.markdown(f"**Сложность:** {task.get('complexity', 'M')}")
@@ -456,42 +341,37 @@ if page == "📋 Список задач":
                     
                     st.markdown("---")
                     
-                    # Бизнес-контекст (заполняет инициатор)
-                    st.markdown("** Бизнес-контекст** *(заполняет инициатор)*")
-                    st.markdown(f"**Проблема:** {task.get('problem', '⚠️ Не заполнено') or '️ Не заполнено'}")
-                    st.markdown(f"**Целевая аудитория:** {task.get('audience', '⚠️ Не заполнено') or '⚠️ Не заполнено'}")
-                    st.markdown(f"**Бизнес-цель:** {task.get('business_goal', '⚠️ Не заполнено') or '⚠️ Не заполнено'}")
-                    st.markdown(f"**Метрики успеха:** {task.get('metrics', '️ Не заполнено') or '⚠️ Не заполнено'}")
-                    st.markdown(f"**Что будет если не сделать:** {task.get('impact', '⚠️ Не заполнено') or '️ Не заполнено'}")
-                    st.markdown(f"**Основной сценарий:** {task.get('use_cases', '⚠️ Не заполнено') or '⚠️ Не заполнено'}")
+                    st.markdown("**💼 Бизнес-контекст** *(заполняет инициатор)*")
+                    st.markdown(f"**Проблема:** {task.get('problem', '') or '⚠️ Не заполнено'}")
+                    st.markdown(f"**Целевая аудитория:** {task.get('audience', '') or '⚠️ Не заполнено'}")
+                    st.markdown(f"**Бизнес-цель:** {task.get('business_goal', '') or '⚠️ Не заполнено'}")
+                    st.markdown(f"**Метрики успеха:** {task.get('metrics', '') or '⚠️ Не заполнено'}")
+                    st.markdown(f"**Что будет если не сделать:** {task.get('impact', '') or '⚠️ Не заполнено'}")
+                    st.markdown(f"**Основной сценарий:** {task.get('use_cases', '') or '️ Не заполнено'}")
                     
                     st.markdown("---")
                     
-                    # Решение (опционально)
-                    st.markdown("**🎯 Решение** *(опционально)*")
-                    st.markdown(f"**As Is:** {task.get('as_is', 'Не описано') or 'Не описано'}")
-                    st.markdown(f"**To Be:** {task.get('to_be', 'Не описано') or 'Не описано'}")
+                    st.markdown("** Решение** *(опционально, заполняет инициатор)*")
+                    st.markdown(f"**As Is:** {task.get('as_is', '') or 'Не описано'}")
+                    st.markdown(f"**To Be:** {task.get('to_be', '') or 'Не описано'}")
                     
                     st.markdown("---")
                     
-                    # Ограничения (опционально)
-                    st.markdown("**⚠️ Ограничения и зависимости** *(опционально)*")
-                    st.markdown(f"**Зависимости:** {task.get('dependencies', 'Не указаны') or 'Не указаны'}")
-                    st.markdown(f"**Ограничения:** {task.get('constraints', 'Нет') or 'Нет'}")
-                    st.markdown(f"**Риски:** {task.get('risks', 'Нет') or 'Нет'}")
+                    st.markdown("**️ Ограничения и зависимости** *(опционально, заполняет инициатор)*")
+                    st.markdown(f"**Зависимости:** {task.get('dependencies', '') or 'Не указаны'}")
+                    st.markdown(f"**Ограничения:** {task.get('constraints', '') or 'Нет'}")
+                    st.markdown(f"**Риски:** {task.get('risks', '') or 'Нет'}")
                     
                     st.markdown("---")
                     
-                    # Поля аналитика
                     st.markdown("**🔧 Поля аналитика** *(заполняет аналитик/чаттер-лид)*")
-                    st.markdown(f"**Критерии приемки (DoD):** {task.get('acceptance_criteria', '️ Не заполнено') or '⚠️ Не заполнено'}")
-                    st.markdown(f"**Декомпозиция на подзадачи:** {task.get('subtasks', '⚠️ Не заполнено') or '⚠️ Не заполнено'}")
-                    st.markdown(f"**Техническая оценка:** {task.get('technical_estimate', '⚠️ Не заполнено') or '⚠️ Не заполнено'}")
-                    st.markdown(f"**Детальные зависимости:** {task.get('detailed_dependencies', '⚠️ Не заполнено') or '⚠️ Не заполнено'}")
+                    st.markdown(f"**Критерии приемки (DoD):** {task.get('acceptance_criteria', '') or '⚠️ Не заполнено'}")
+                    st.markdown(f"**Декомпозиция на подзадачи:** {task.get('subtasks', '') or '⚠️ Не заполнено'}")
+                    st.markdown(f"**Техническая оценка:** {task.get('technical_estimate', '') or '⚠️ Не заполнено'}")
+                    st.markdown(f"**Детальные зависимости:** {task.get('detailed_dependencies', '') or '⚠️ Не заполнено'}")
                     
                     st.markdown("---")
                     
-                    # Кнопки действий
                     col1, col2, col3 = st.columns(3)
                     with col1:
                         new_status = st.selectbox(
@@ -514,7 +394,7 @@ if page == "📋 Список задач":
                             st.session_state.tasks = [t for t in st.session_state.tasks if t["id"] != task["id"]]
                             st.rerun()
 
-# ================= ЭКРАН 2: НОВАЯ ЗАДАЧА =================
+# ================= ЭКРАН 2: НОВАЯ ЗАДАЧА (только поля инициатора) =================
 elif page == "➕ Новая задача":
     st.header("Создание инициативы")
     st.markdown("💡 **Совет:** Задачу можно создать с любым количеством полей. Система покажет, что нужно дополнить.")
@@ -528,7 +408,7 @@ elif page == "➕ Новая задача":
         with col2:
             owner = st.text_input("Инициатор/Владелец", placeholder="ФИО")
         
-        st.subheader("💼 Бизнес-контекст (заполняет инициатор)")
+        st.subheader("💼 Бизнес-контекст")
         problem = st.text_area("Проблема/Возможность", placeholder="Что не так сейчас?", height=80)
         
         col1, col2 = st.columns(2)
@@ -539,24 +419,10 @@ elif page == "➕ Новая задача":
             metrics = st.text_area("Метрики успеха", placeholder="Как поймем успех?", height=80)
             impact = st.text_area("Что будет если не сделать", placeholder="Влияние на бизнес", height=80)
         
-        st.subheader("🎯 Решение и сценарии")
-        col1, col2 = st.columns(2)
-        with col1:
-            as_is = st.text_area("As Is (как сейчас)", placeholder="Текущее состояние", height=80)
-            to_be = st.text_area("To Be (как должно быть)", placeholder="Желаемое состояние", height=80)
-        with col2:
-            use_cases = st.text_area("Основной сценарий", placeholder="Кто → Что делает → Результат", height=80)
+        st.subheader(" Основной сценарий")
+        use_cases = st.text_area("Кто → Что делает → Результат", placeholder="Клиент → Открывает приложение → Видит портфель", height=80)
         
-        st.subheader("⚠️ Ограничения и зависимости")
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            dependencies = st.text_area("Зависимости", placeholder="От каких систем/команд", height=80)
-        with col2:
-            constraints = st.text_area("Ограничения", placeholder="Технические, регуляторные", height=80)
-        with col3:
-            risks = st.text_area("Риски", placeholder="Что может пойти не так", height=80)
-        
-        st.subheader("📊 Приоритизация")
+        st.subheader(" Приоритизация")
         col1, col2, col3 = st.columns(3)
         with col1:
             urgency = st.selectbox("Срочность", ["High", "Medium", "Low"])
@@ -578,16 +444,17 @@ elif page == "➕ Новая задача":
                     "business_goal": business_goal,
                     "metrics": metrics,
                     "impact": impact,
-                    "as_is": as_is,
-                    "to_be": to_be,
+                    "as_is": "",
+                    "to_be": "",
                     "use_cases": use_cases,
-                    "dependencies": dependencies,
-                    "constraints": constraints,
-                    "risks": risks,
+                    "dependencies": "",
+                    "constraints": "",
+                    "risks": "",
                     "acceptance_criteria": "",
                     "subtasks": "",
                     "technical_estimate": "",
                     "detailed_dependencies": "",
+                    "analyst_deadline": "",
                     "urgency": urgency,
                     "business_value": business_value,
                     "complexity": complexity,
