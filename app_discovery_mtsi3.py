@@ -526,15 +526,33 @@ if page == "📋 Список задач":
                     st.markdown("**Приоритет**")
                
                 st.markdown("---")
-                
+
                 for task in tasks_in_group:
                     readiness = check_readiness(task)
-                    status_emoji = {"Idea": "⚪", "In Discovery": "🔵", "Ready for Analyst": "🟠", "Requirements Clarification": "", "Ready for Refinement": "✅"}[task["status"]]
-                    value_emoji = {"High": "🔴", "Medium": "", "Low": "🟢"}[task["business_value"]]
-                    
-                    exec_badge = " 👑" if task.get("executive_priority") else ""
-                    
-                    with st.expander(f"**{task['title']}**{exec_badge}"):
+                    status_emoji = {"Idea": "⚪", "In Discovery": "🔵", "Ready for Analyst": "🟠", "Requirements Clarification": "🟣", "Ready for Refinement": "✅"}[task["status"]]
+                    value_emoji = {"High": "🔴", "Medium": "🟡", "Low": "🟢"}.get(task["business_value"], "⚪")
+                    urgency_emoji = {"High": "🔴", "Medium": "🟡", "Low": "🟢"}.get(task.get("urgency"), "⚪")
+                    exec_badge = " 👑"
+                    if task.get("executive_priority")
+                    else ""
+                    priority_display = task.get("priority", "")
+                    or "—"
+                    c1, c2, c3, c4, c5, c6 = st.columns([4, 2, 1.3, 1.3, 1, 1])
+                    with c1:
+                        st.markdown(f"**{task['title']}**{exec_badge}")
+                    with c2:
+                        st.markdown(f"{status_emoji} {task['status']}")
+                    with c3:
+                        st.markdown(f"{urgency_emoji} {task.get('urgency', 'Medium')}")
+                    with c4:
+                        st.markdown(f"{value_emoji} {task.get('business_value', 'Medium')}")
+                    with c5:
+                        st.markdown(task.get("complexity", "M"))
+                    with c6:
+                        st.markdown(priority_display)
+                    with st.expander("Подробнее"):
+
+                        
                         col_info1, col_info2, col_info3, col_info4 = st.columns([2.5, 2, 1.5, 1.5])
                         with col_info1:
                             st.markdown(f"{value_emoji} **{task['title']}**")
