@@ -1,9 +1,9 @@
 import streamlit as st
 from datetime import datetime, timedelta
 
-st.set_page_config(page_title="Discovery Manager", page_icon="🚀", layout="wide")
+st.set_page_config(page_title="Discovery Manager МТСИ", page_icon="🚀", layout="wide")
 
-# ================= ДЕМО-ДАННЫЕ (одна задача) =================
+# ================= ДЕМО-ДАННЫЕ =================
 DEMO_TASKS = [
     {
         "id": 1,
@@ -26,6 +26,12 @@ DEMO_TASKS = [
         "detailed_dependencies": "",
         "analyst_deadline": "",
         "priority": "",
+        "rice_score": 0,
+        "reach": 0,
+        "impact": 0,
+        "confidence": 0,
+        "effort": 0,
+        "executive_priority": False,
         "urgency": "High",
         "business_value": "Medium",
         "complexity": "S",
@@ -52,13 +58,26 @@ ANALYST_FIELDS = {
     "detailed_dependencies": "Детальные технические зависимости"
 }
 
-# Ёмкость в днях и спринтах (спринт = 10 дней)
 COMPLEXITY_INFO = {
-    "S": {"days": "< 5 дней", "sprints": "< 0.5 спринта", "description": "Небольшая задача"},
-    "M": {"days": "5-10 дней", "sprints": "0.5-1 спринт", "description": "Средняя задача"},
-    "L": {"days": "10-20 дней", "sprints": "1-2 спринта", "description": "Большая задача"},
-    "XL": {"days": "20-40 дней", "sprints": "2-4 спринта", "description": "Очень большая задача"},
-    "XXL": {"days": "40+ дней", "sprints": "4+ спринтов", "description": "Эпическая задача"}
+    "S": {"days": "< 5 дней", "sprints": "< 0.5 спринта", "effort_score": 1},
+    "M": {"days": "5-10 дней", "sprints": "0.5-1 спринт", "effort_score": 2},
+    "L": {"days": "10-20 дней", "sprints": "1-2 спринта", "effort_score": 4},
+    "XL": {"days": "20-40 дней", "sprints": "2-4 спринта", "effort_score": 8},
+    "XXL": {"days": "40+ дней", "sprints": "4+ спринтов", "effort_score": 16}
+}
+
+# Подсказки для Business Value
+BUSINESS_VALUE_HINTS = {
+    "High": "🔴 Влияет на деньги (AUM, операционный доход), регуляторные требования, удержание клиентов, стратегические инициативы",
+    "Medium": "🟡 Влияет на NPS, активность клиентов, конверсию (но не критично)",
+    "Low": "🟢 Косметические улучшения, внутренние удобства, 'было бы неплохо'"
+}
+
+# Подсказки для Urgency
+URGENCY_HINTS = {
+    "High": "🔴 Жесткий дедлайн (регуляторка), блокирует другие задачи, клиенты уже уходят, конкуренты уже сделали",
+    "Medium": "🟡 Желательно в этом квартале, влияет на планируемый запуск, накопительный эффект",
+    "Low": " Нет дедлайна, можно отложить, делается 'когда будут ресурсы'"
 }
 
 def check_readiness(task):
@@ -81,6 +100,12 @@ def check_readiness(task):
         "missing_analyst": [f for f in ANALYST_FIELDS if not task.get(f)]
     }
 
+def calculate_rice(reach, impact, confidence, effort):
+    """Считает RICE скор"""
+    if effort == 0:
+        return 0
+    return (reach * impact * confidence) / effort
+
 # ================= ИНИЦИАЛИЗАЦИЯ =================
 if "tasks" not in st.session_state:
     st.session_state.tasks = DEMO_TASKS.copy()
@@ -91,10 +116,13 @@ if "editing_task_id" not in st.session_state:
 if "show_new_task_form" not in st.session_state:
     st.session_state.show_new_task_form = False
 
+if "prioritization_index" not in st.session_state:
+    st.session_state.prioritization_index = 0
+
 st.title("🚀 Discovery Manager")
 st.markdown("Конвейер спринтов: Этап Discovery")
 
-page = st.sidebar.radio("Навигация", ["📋 Список задач", "➕ Новая задача", "📊 Приоритезация задач"])
+page = st.sidebar.radio("Навигация", ["📋 Список задач", "➕ Новая задача", " Приоритезация задач"])
 
 # ================= ИНСТРУКЦИЯ =================
 with st.expander("ℹ️ Как пользоваться Discovery Manager", expanded=False):
@@ -102,44 +130,44 @@ with st.expander("ℹ️ Как пользоваться Discovery Manager", exp
     **🎯 Цель этапа Discovery:** Превратить сырую идею в задачу, готовую к передаче аналитику.
     
     **📝 Процесс:**
-    1. **Инициатор** создает задачу и заполняет бизнес-поля (проблема, цель, метрики, сценарий)
-    2. **Система** автоматически показывает прогресс заполнения
+    1. **Инициатор** создает задачу и заполняет бизнес-поля
+    2. **Система** показывает прогресс заполнения
     3. Когда бизнес-поля заполнены на 80%+, появляется кнопка **"Передать аналитику"**
-    4. **Аналитик/Чаттер-лид** уточняет требования, пишет Acceptance Criteria, оценивает сложность
-    5. Задача переходит в статус **"Ready for Refinement"** и идет к команде
+    4. **Аналитик** уточняет требования, пишет Acceptance Criteria
+    5. Задача проходит **Приоритезацию** (RICE)
+    6. Задача переходит в статус **"Ready for Refinement"**
     
-    **💡 Важно:**
-    - Задачу можно создать с **любым количеством полей** - не нужно заполнять всё сразу
-    - Система подскажет, какие поля нужно дополнить
-    - Статусы меняются автоматически или вручную
+    ** Важно:**
+    - Задачу можно создать с любым количеством полей
+    - Каждая задача должна пройти через приоритезацию
     """)
 
-# ================= ЛЕГЕНДА (только для списка задач и приоритезации) =================
-if page in ["📋 Список задач", "📊 Приоритезация задач"]:
+# ================= ЛЕГЕНДА (только для списка задач) =================
+if page == "📋 Список задач":
     st.markdown("### 📖 Легенда")
 
-    col_legend1, col_legend2, col_legend3, col_legend4 = st.columns(4)
+    col_legend1, col_legend2, col_legend3 = st.columns(3)
 
     with col_legend1:
-        st.markdown("**📌 Статусы задач:**")
+        st.markdown("** Статусы задач:**")
         st.markdown("""
         - ⚪ **Idea** — сырая идея
-        -  **In Discovery** — бизнес заполняет шаблон
-        - 🟠 **Ready for Analyst** — готово к передаче аналитику
+        - 🔵 **In Discovery** — бизнес заполняет шаблон
+        -  **Ready for Analyst** — готово к передаче аналитику
         - 🟣 **Requirements Clarification** — аналитик уточняет требования
         - ✅ **Ready for Refinement** — готово к бэклог-рефайнменту
         """)
 
     with col_legend2:
-        st.markdown("**🔥 Приоритеты:**")
+        st.markdown("**🔥 Срочность:**")
         st.markdown("""
-        - 🔴 **High** — критично
-        - 🟡 **Medium** — средне
-        - 🟢 **Low** — низко
+        -  **High** — критично
+        -  **Medium** — средне
+        -  **Low** — низко
         """)
 
     with col_legend3:
-        st.markdown("**📏 Ёмкость (T-shirt sizing):**")
+        st.markdown("** Ёмкость (T-shirt sizing):**")
         st.markdown("""
         - **S** — < 5 дней (< 0.5 спринта)
         - **M** — 5-10 дней (0.5-1 спринт)
@@ -148,16 +176,6 @@ if page in ["📋 Список задач", "📊 Приоритезация з�
         - **XXL** — 40+ дней (4+ спринтов)
         
         *Спринт = 10 дней*
-        """)
-
-    with col_legend4:
-        st.markdown("** Приоритет:**")
-        st.markdown("""
-        Заполняется отдельно в разделе **"📊 Приоритезация задач"** на основе:
-        - Business Value
-        - Срочности
-        - мкости
-        - Стратегической важности
         """)
 
     st.markdown("---")
@@ -180,7 +198,7 @@ if page == "📋 Список задач":
                 with col2:
                     owner = st.text_input("Инициатор/Владелец", value=task_to_edit.get("owner", ""))
                 
-                st.subheader(" Бизнес-контекст (заполняет инициатор)")
+                st.subheader("💼 Бизнес-контекст (заполняет инициатор)")
                 problem = st.text_area("Проблема/Возможность", value=task_to_edit.get("problem", ""), height=80)
                 
                 col1, col2 = st.columns(2)
@@ -199,7 +217,7 @@ if page == "📋 Список задач":
                 with col2:
                     use_cases = st.text_area("Основной сценарий", value=task_to_edit.get("use_cases", ""), height=80)
                 
-                st.subheader("️ Ограничения и зависимости")
+                st.subheader("⚠️ Ограничения и зависимости")
                 col1, col2, col3 = st.columns(3)
                 with col1:
                     dependencies = st.text_area("Зависимости", value=task_to_edit.get("dependencies", ""), height=80)
@@ -229,9 +247,11 @@ if page == "📋 Список задач":
                 with col1:
                     urgency = st.selectbox("Срочность", ["High", "Medium", "Low"],
                                           index=["High", "Medium", "Low"].index(task_to_edit.get("urgency", "Medium")))
+                    st.caption(URGENCY_HINTS[urgency])
                 with col2:
                     business_value = st.selectbox("Бизнес-ценность", ["High", "Medium", "Low"],
                                                  index=["High", "Medium", "Low"].index(task_to_edit.get("business_value", "Medium")))
+                    st.caption(BUSINESS_VALUE_HINTS[business_value])
                 with col3:
                     complexity = st.selectbox("Сложность (ёмкость)", ["S", "M", "L", "XL", "XXL"],
                                              index=["S", "M", "L", "XL", "XXL"].index(task_to_edit.get("complexity", "M")))
@@ -243,7 +263,7 @@ if page == "📋 Список задач":
                 with col1:
                     submitted = st.form_submit_button("💾 Сохранить изменения", type="primary")
                 with col2:
-                    cancelled = st.form_submit_button(" Отмена")
+                    cancelled = st.form_submit_button("❌ Отмена")
                 
                 if submitted:
                     task_to_edit["title"] = title
@@ -309,18 +329,18 @@ if page == "📋 Список задач":
                 
                 status_emoji = {
                     "Idea": "⚪",
-                    "In Discovery": "",
-                    "Ready for Analyst": "",
-                    "Requirements Clarification": "",
+                    "In Discovery": "🔵",
+                    "Ready for Analyst": "🟠",
+                    "Requirements Clarification": "🟣",
                     "Ready for Refinement": "✅"
                 }[task["status"]]
                 
-                value_emoji = {"High": "🔴", "Medium": "🟡", "Low": "🟢"}[task["business_value"]]
+                value_emoji = {"High": "🔴", "Medium": "", "Low": "🟢"}[task["business_value"]]
                 
-                # Показываем приоритет если есть
-                priority_display = f" |  {task.get('priority', '')}" if task.get("priority") else ""
+                priority_display = f" | ⭐ {task.get('priority', '')}" if task.get("priority") else ""
+                exec_badge = " 👑" if task.get("executive_priority") else ""
                 
-                with st.expander(f"{value_emoji} **{task['title']}** {status_emoji} `{task['status']}`{priority_display}"):
+                with st.expander(f"{value_emoji} **{task['title']}** {status_emoji} `{task['status']}`{priority_display}{exec_badge}"):
                     st.markdown("**📊 Прогресс заполнения:**")
                     col1, col2 = st.columns(2)
                     with col1:
@@ -344,9 +364,9 @@ if page == "📋 Список задач":
                         deadline_date = datetime.strptime(task["analyst_deadline"], "%Y-%m-%d").date()
                         days_left = (deadline_date - datetime.now().date()).days
                         if days_left < 0:
-                            st.error(f"🚨 Срок анализа истек! Дедлайн был {task['analyst_deadline']}")
+                            st.error(f" Срок анализа истек! Дедлайн был {task['analyst_deadline']}")
                         elif days_left <= 2:
-                            st.warning(f"⏰ Срок анализа истекает через {days_left} дн. (дедлайн: {task['analyst_deadline']})")
+                            st.warning(f" Срок анализа истекает через {days_left} дн. (дедлайн: {task['analyst_deadline']})")
                         else:
                             st.info(f"📅 Срок анализа: {task['analyst_deadline']} (осталось {days_left} дн.)")
                     
@@ -365,6 +385,8 @@ if page == "📋 Список задач":
                     with col3:
                         st.markdown(f"**Бизнес-ценность:** {task.get('business_value', 'Medium')}")
                         st.markdown(f"**Приоритет:** {task.get('priority', '') or 'Не заполнен'}")
+                        if task.get("rice_score"):
+                            st.caption(f"RICE: {task['rice_score']:.2f}")
                         st.markdown(f"**Создана:** {task.get('created_date', 'Не указана')}")
                     
                     st.markdown("---")
@@ -425,7 +447,6 @@ if page == "📋 Список задач":
 # ================= ЭКРАН 2: НОВАЯ ЗАДАЧА =================
 elif page == "➕ Новая задача":
     if not st.session_state.show_new_task_form:
-        # Показываем только кнопку
         st.header("Создание новой инициативы")
         st.markdown("""
         💡 **Как это работает:**
@@ -443,10 +464,9 @@ elif page == "➕ Новая задача":
                 st.session_state.show_new_task_form = True
                 st.rerun()
     else:
-        # Показываем форму
         st.header("Создание инициативы")
         
-        if st.button("← Назад к кнопке"):
+        if st.button("← Назад"):
             st.session_state.show_new_task_form = False
             st.rerun()
         
@@ -470,15 +490,17 @@ elif page == "➕ Новая задача":
                 metrics = st.text_area("Метрики успеха", placeholder="Как поймем успех?", height=80)
                 impact = st.text_area("Что будет если не сделать", placeholder="Влияние на бизнес", height=80)
             
-            st.subheader(" Основной сценарий")
+            st.subheader("🎯 Основной сценарий")
             use_cases = st.text_area("Кто → Что делает → Результат", placeholder="Клиент → Открывает приложение → Видит портфель", height=80)
             
-            st.subheader("📊 Приоритизация")
+            st.subheader("📊 Приоритизация (предварительная)")
             col1, col2, col3 = st.columns(3)
             with col1:
                 urgency = st.selectbox("Срочность", ["High", "Medium", "Low"])
+                st.caption(URGENCY_HINTS[urgency])
             with col2:
                 business_value = st.selectbox("Бизнес-ценность", ["High", "Medium", "Low"])
+                st.caption(BUSINESS_VALUE_HINTS[business_value])
             with col3:
                 complexity = st.selectbox("Сложность (ёмкость)", ["S", "M", "L", "XL", "XXL"])
                 if complexity in COMPLEXITY_INFO:
@@ -510,6 +532,12 @@ elif page == "➕ Новая задача":
                         "detailed_dependencies": "",
                         "analyst_deadline": "",
                         "priority": "",
+                        "rice_score": 0,
+                        "reach": 0,
+                        "impact_rice": 0,
+                        "confidence": 0,
+                        "effort": 0,
+                        "executive_priority": False,
                         "urgency": urgency,
                         "business_value": business_value,
                         "complexity": complexity,
@@ -526,46 +554,141 @@ elif page == "➕ Новая задача":
                     st.error("❌ Укажи название задачи")
 
 # ================= ЭКРАН 3: ПРИОРИТЕЗАЦИЯ ЗАДАЧ =================
-elif page == " Приоритезация задач":
-    st.header("Приоритезация задач")
-    st.markdown("Здесь определяется финальный приоритет задач на основе бизнес-ценности, срочности и ёмкости.")
+elif page == "📊 Приоритезация задач":
+    st.header("📊 Приоритезация задач (RICE)")
+    
+    # Считаем сколько задач не приоритезировано
+    unrioritized = [t for t in st.session_state.tasks if not t.get("priority")]
+    prioritized = [t for t in st.session_state.tasks if t.get("priority")]
+    
+    # Дэшборд
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Всего задач", len(st.session_state.tasks))
+    with col2:
+        st.metric("Не приоритезировано", len(unrioritized), delta=f"{len(unrioritized)} осталось")
+    with col3:
+        st.metric("Приоритезировано", len(prioritized))
+    
+    st.markdown("---")
     
     if not st.session_state.tasks:
         st.info("Нет задач для приоритезации")
+    elif len(unrioritized) == 0:
+        st.success("✅ Все задачи приоритезированы!")
+        
+        st.markdown("### 📋 Отсортированный список по приоритету:")
+        sorted_tasks = sorted(st.session_state.tasks, key=lambda x: (
+            0 if x.get("executive_priority") else 1,
+            x.get("rice_score", 0) * -1
+        ))
+        
+        for i, task in enumerate(sorted_tasks, 1):
+            exec_badge = "👑 " if task.get("executive_priority") else ""
+            st.markdown(f"**{i}.** {exec_badge}**{task['title']}** — RICE: {task.get('rice_score', 0):.2f} | Приоритет: {task.get('priority', '-')}")
     else:
-        st.markdown("""
-        **Как определять приоритет:**
-        - **P1** — критично, делаем в первую очередь
-        - **P2** — важно, делаем во вторую очередь
-        - **P3** — желательно, делаем когда есть ресурсы
-        - **P4** — можно отложить
-        """)
+        st.markdown(f"⚠️ **{len(unrioritized)} задач** ожидают приоритезации")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("🚀 Начать приоритезацию", type="primary", use_container_width=True):
+                st.session_state.prioritization_index = 0
+                st.rerun()
+        
+        with col2:
+            if st.button("⏭️ Пропустить эту задачу"):
+                if st.session_state.prioritization_index < len(unrioritized) - 1:
+                    st.session_state.prioritization_index += 1
+                st.rerun()
         
         st.markdown("---")
         
-        for task in st.session_state.tasks:
-            col1, col2, col3, col4 = st.columns([3, 1, 1, 2])
+        # Показываем текущую задачу для приоритезации
+        if st.session_state.prioritization_index < len(unrioritized):
+            current_task = unrioritized[st.session_state.prioritization_index]
             
-            with col1:
-                st.markdown(f"**{task['title']}**")
-                st.caption(f"Бизнес-ценность: {task.get('business_value', '')} | Срочность: {task.get('urgency', '')} | Ёмкость: {task.get('complexity', '')}")
+            st.markdown(f"### 📝 Задача {st.session_state.prioritization_index + 1} из {len(unrioritized)}")
             
-            with col2:
-                st.caption("Текущий приоритет")
-                st.markdown(f"**{task.get('priority', '-') or '-'}**")
-            
-            with col3:
-                new_priority = st.selectbox(
-                    "Приоритет",
-                    ["", "P1", "P2", "P3", "P4"],
-                    index=["", "P1", "P2", "P3", "P4"].index(task.get("priority", "")),
-                    key=f"priority_{task['id']}",
-                    label_visibility="collapsed"
-                )
-            
-            with col4:
-                if new_priority != task.get("priority"):
-                    task["priority"] = new_priority
-                    st.success("Сохранено!")
+            with st.expander(f"📋 {current_task['title']}", expanded=True):
+                st.markdown(f"**Проблема:** {current_task.get('problem', 'Не указана')}")
+                st.markdown(f"**Бизнес-цель:** {current_task.get('business_goal', 'Не указана')}")
+                st.markdown(f"**Метрики:** {current_task.get('metrics', 'Не указаны')}")
+                st.markdown(f"**Срочность:** {current_task.get('urgency', 'Medium')} | **Бизнес-ценность:** {current_task.get('business_value', 'Medium')} | **Ёмкость:** {current_task.get('complexity', 'M')}")
             
             st.markdown("---")
+            
+            st.subheader(" Оценка RICE")
+            
+            with st.form(f"rice_form_{current_task['id']}"):
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.markdown("**Reach (Охват)** — сколько клиентов затронет?")
+                    reach = st.slider("Охват (1-10)", 1, 10, 5, key=f"reach_{current_task['id']}")
+                    st.caption("1 = небольшая группа, 5 = половина клиентов, 10 = все клиенты")
+                    
+                    st.markdown("**Impact (Влияние)** — насколько сильно?")
+                    impact = st.slider("Влияние (1-3)", 1, 3, 2, key=f"impact_{current_task['id']}")
+                    st.caption("1 = слабое, 2 = среднее (NPS), 3 = массовый эффект (AUM, регуляторка)")
+                
+                with col2:
+                    st.markdown("**Confidence (Уверенность)** — насколько уверены?")
+                    confidence = st.slider("Уверенность (50-100%)", 50, 100, 80, key=f"confidence_{current_task['id']}")
+                    st.caption("50% = догадки, 80% = экспертная оценка, 100% = есть данные")
+                    
+                    st.markdown("**Effort (Усилия)** — ёмкость задачи")
+                    effort_options = ["S", "M", "L", "XL", "XXL"]
+                    effort_labels = ["S (< 5 дней)", "M (5-10 дней)", "L (10-20 дней)", "XL (20-40 дней)", "XXL (40+ дней)"]
+                    effort_index = effort_options.index(current_task.get("complexity", "M")) if current_task.get("complexity") in effort_options else 1
+                    effort = st.selectbox("Ёмкость", effort_labels, index=effort_index, key=f"effort_{current_task['id']}")
+                    effort_score = COMPLEXITY_INFO[effort.split(" ")[0]]["effort_score"]
+                
+                executive_priority = st.checkbox("👑 Высший приоритет (задача от руководства)", key=f"exec_{current_task['id']}")
+                
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    submitted = st.form_submit_button(" Сохранить и продолжить", type="primary")
+                with col2:
+                    skipped = st.form_submit_button("⏭️ Пропустить")
+                with col3:
+                    cancelled = st.form_submit_button("❌ Отмена")
+                
+                if submitted:
+                    reach_score = reach
+                    impact_score = impact
+                    confidence_score = confidence / 100
+                    effort_score = COMPLEXITY_INFO[effort.split(" ")[0]]["effort_score"]
+                    
+                    rice_score = calculate_rice(reach_score, impact_score, confidence_score, effort_score)
+                    
+                    # Определяем приоритет на основе RICE
+                    if rice_score >= 5:
+                        priority = "P1"
+                    elif rice_score >= 2:
+                        priority = "P2"
+                    elif rice_score >= 1:
+                        priority = "P3"
+                    else:
+                        priority = "P4"
+                    
+                    current_task["reach"] = reach_score
+                    current_task["impact_rice"] = impact_score
+                    current_task["confidence"] = confidence_score
+                    current_task["effort"] = effort_score
+                    current_task["rice_score"] = rice_score
+                    current_task["priority"] = priority
+                    current_task["executive_priority"] = executive_priority
+                    
+                    st.success(f"✅ RICE: {rice_score:.2f} → Приоритет: {priority}")
+                    
+                    if st.session_state.prioritization_index < len(unrioritized) - 1:
+                        st.session_state.prioritization_index += 1
+                    st.rerun()
+                
+                if skipped:
+                    if st.session_state.prioritization_index < len(unrioritized) - 1:
+                        st.session_state.prioritization_index += 1
+                    st.rerun()
+                
+                if cancelled:
+                    st.rerun()
