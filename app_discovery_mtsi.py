@@ -527,9 +527,9 @@ if page == "📋 Список задач":
                                 st.download_button(label="📥 Confluence", data=confluence_text, file_name=f"{task['title']}_confluence.txt", mime="text/plain", key=f"confluence_{task['id']}")
                             with col4:
                                 if st.button("🗑️ Удалить", key=f"delete_{task['id']}"):
-                                st.session_state.tasks = [t for t in st.session_state.tasks if t["id"] != task["id"]]
-                                save_tasks_to_file(st.session_state.tasks)
-                                st.rerun()
+                                    st.session_state.tasks = [t for t in st.session_state.tasks if t["id"] != task["id"]]
+                                    save_tasks_to_file(st.session_state.tasks)
+                                    st.rerun()
                         
                         st.markdown("---")
 
