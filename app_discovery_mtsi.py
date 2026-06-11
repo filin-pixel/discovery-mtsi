@@ -286,6 +286,16 @@ if page == "📋 Список задач":
         task_to_edit = next((t for t in st.session_state.tasks if t["id"] == st.session_state.editing_task_id), None)
         if task_to_edit:
             st.header(f"✏️ Редактирование: {task_to_edit['title']}")
+            readiness = check_readiness(task_to_edit)
+            if readiness["is_ready_for_analyst"] and task_to_edit["status"] == "In Discovery":
+                st.success("✅ Задача полностью заполнена и готова к передаче аналитику!")
+                if st.button("🚀 Передать аналитику", key=f"ready_edit_{task_to_edit['id']}", type="primary", use_container_width=True):
+                    task_to_edit["status"] = "Ready for Analyst"
+                    task_to_edit["analyst_deadline"] = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
+                    save_tasks_to_file(st.session_state.tasks)
+                    st.rerun()
+            st.markdown("---")
+            
             st.markdown("---")
             st.markdown("**⚡ Быстрые действия:**")
             col_conf, col_del = st.columns([1.5, 1])
