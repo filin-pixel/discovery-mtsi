@@ -98,7 +98,7 @@ def import_tasks_from_excel(uploaded_file):
             if idx == 0:
                 continue
                 
-            title = str(row.iloc[0]).strip() if pd.notna(row.iloc[0]) and len(row) > 0 else ""
+            title = str(row.iloc[0]).strip() if pd.notna(row.iloc[0]) else ""
             
             if not title or title == "nan":
                 continue
@@ -333,14 +333,14 @@ if page == "📋 Список задач":
                     st.session_state.editing_task_id = None
                     st.success("✅ Сохранено!")
                     st.rerun()
-            if cancelled:
-                st.session_state.editing_task_id = None
-                st.rerun()
+                if cancelled:
+                    st.session_state.editing_task_id = None
+                    st.rerun()
     else:
         st.header("Бэклог инициатив")
         
         if not st.session_state.tasks:
-            st.info("ℹ️ Нет задач. Импортируйте задачи из Excel или создайте новую задачу.")
+            st.info("ℹ️ Нет задач")
         else:
             tasks = st.session_state.tasks
             
@@ -684,14 +684,34 @@ elif page == "📥 Импорт задач":
                 new_tasks = import_tasks_from_excel(uploaded_file)
                 
                 if new_tasks:
-                    max_id = max([t["id"] for t in st.session_state.tasks], default=0)
-                    for i, task in enumerate(new_tasks):
-                        task["id"] = max_id + i + 1
-                        st.session_state.tasks.append(task)
+                    # ПРОВЕРКА НА ДУБЛИКАТЫ - не добавляем задачи с таким же названием
+                    existing_titles = {t["title"].lower().strip() for t in st.session_state.tasks}
+                    tasks_to_add = []
+                    skipped_count = 0
                     
-                    save_tasks_to_file(st.session_state.tasks)
-                    st.success(f"✅ Импортировано {len(new_tasks)} задач!")
-                    st.info("💡 Перейдите в раздел '📋 Список задач' чтобы увидеть импортированные задачи")
+                    for task in new_tasks:
+                        title_lower = task["title"].lower().strip()
+                        if title_lower not in existing_titles:
+                            tasks_to_add.append(task)
+                            existing_titles.add(title_lower)
+                        else:
+                            skipped_count += 1
+                    
+                    if tasks_to_add:
+                        max_id = max([t["id"] for t in st.session_state.tasks], default=0)
+                        for i, task in enumerate(tasks_to_add):
+                            task["id"] = max_id + i + 1
+                            st.session_state.tasks.append(task)
+                        
+                        save_tasks_to_file(st.session_state.tasks)
+                        
+                        msg = f"✅ Импортировано {len(tasks_to_add)} задач!"
+                        if skipped_count > 0:
+                            msg += f" (Пропущено {skipped_count} дубликатов)"
+                        st.success(msg)
+                        st.info("💡 Перейдите в раздел '📋 Список задач' чтобы увидеть импортированные задачи")
+                    else:
+                        st.warning("⚠️ Все задачи уже существуют в системе (дубликаты пропущены).")
                 else:
                     st.warning("⚠️ Не удалось импортировать задачи. Проверьте формат файла.")
     
