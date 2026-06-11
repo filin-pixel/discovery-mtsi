@@ -95,6 +95,37 @@ def check_readiness(task):
     }
 
 
+def auto_update_status(task):
+    """Автоматически обновляет статус задачи на основе заполненности полей"""
+    
+    current_status = task.get("status", "Idea")
+    
+    # Проверяем заполненность полей
+    has_problem = bool(task.get("problem", "").strip())
+    has_goal = bool(task.get("business_goal", "").strip())
+    
+    # Проверяем готовность через существующую функцию
+    readiness = check_readiness(task)
+    is_ready_for_analyst = readiness.get("is_ready_for_analyst", False)
+    
+    # ЛОГИКА АВТОСМЕНЫ СТАТУСА:
+    
+    # 1. Idea → In Discovery: заполнены проблема и цель
+    if current_status == "Idea" and has_problem and has_goal:
+        task["status"] = "In Discovery"
+        return True
+    
+    # 2. In Discovery → Ready for Analyst: все бизнес-поля заполнены
+    if current_status == "In Discovery" and is_ready_for_analyst:
+        task["status"] = "Ready for Analyst"
+        # Автоматически ставим дедлайн для аналитика
+        if not task.get("analyst_deadline"):
+            task["analyst_deadline"] = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
+        return True
+    
+    return False
+
+
 def calculate_rice(reach, impact, confidence, effort):
     if effort == 0:
         return 0
@@ -436,6 +467,28 @@ if page == "📋 Список задач":
                     })
                     if analyst_deadline:
                         task_to_edit["analyst_deadline"] = analyst_deadline.strftime("%Y-%m-%d")
+                                    if submitted:
+                    task_to_edit.update({
+                        "title": title, "type": task_type, "owner": owner,
+                        "problem": problem, "audience": audience, "business_goal": business_goal,
+                        "metrics": metrics, "impact": impact, "use_cases": use_cases,
+                        "as_is": as_is, "to_be": to_be,
+                        "dependencies": dependencies, "constraints": constraints, "risks": risks,
+                        "acceptance_criteria": acceptance_criteria, "subtasks": subtasks,
+                        "technical_estimate": technical_estimate, "detailed_dependencies": detailed_dependencies,
+                        "urgency": urgency, "business_value": business_value, "complexity": complexity
+                    })
+                    if analyst_deadline:
+                        task_to_edit["analyst_deadline"] = analyst_deadline.strftime("%Y-%m-%d")
+                    
+                    # ===== АВТОПЕРЕХОД ПО СТАТУСАМ =====
+                    auto_update_status(task_to_edit)
+                    # ===================================
+                    
+                    save_tasks_to_file(st.session_state.tasks)
+                    st.session_state.editing_task_id = None
+                    st.success("✅ Сохранено!")
+                    st.rerun()
                     save_tasks_to_file(st.session_state.tasks)
                     st.session_state.editing_task_id = None
                     st.success("✅ Сохранено!")
