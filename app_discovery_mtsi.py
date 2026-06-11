@@ -471,26 +471,58 @@ if page == "📋 Список задач":
                             st.markdown(f"**Проблема:** {task.get('problem', 'Не указана')}")
                             st.markdown(f"**Цель:** {task.get('business_goal', 'Не указана')}")
                             
-                            col1, col2, col3, col4 = st.columns(4)
+                            col1, col2, col3, col4 = st.columns([1, 2.5, 1, 1]) # Немного изменил пропорции для красоты
+                            
+                            # --- КОЛОНКА 1: Редактировать ---
                             with col1:
-                                if st.button("✏️ Редактировать", key=f"edit_{task['id']}"):
+                                if st.button("✏️ Ред.", key=f"edit_{task.get('id', 'unknown')}"):
                                     st.session_state.editing_task_id = task["id"]
                                     st.rerun()
+                            
+                            # --- КОЛОНКА 2: Статус ---
                             with col2:
-                                new_status = st.selectbox("Статус", ["Idea", "In Discovery", "Ready for Analyst", "Requirements Clarification", "Ready for Refinement"], index=["Idea", "In Discovery", "Ready for Analyst", "Requirements Clarification", "Ready for Refinement"].index(task["status"]), key=f"status_{task['id']}")
-                                if new_status != task["status"]:
+                                status_options = ["Idea", "In Discovery", "Ready for Analyst", "Requirements Clarification", "Ready for Refinement"]
+                                # Защита: если статуса нет в списке, берем первый по умолчанию (индекс 0)
+                                current_status = task.get("status", "Idea")
+                                safe_index = status_options.index(current_status) if current_status in status_options else 0
+                                
+                                new_status = st.selectbox(
+                                    "Статус", 
+                                    status_options, 
+                                    index=safe_index, 
+                                    key=f"status_{task.get('id', 'unknown')}",
+                                    label_visibility="collapsed" # Скрываем надпись "Статус" для экономии места
+                                )
+                                if new_status != current_status:
                                     task["status"] = new_status
                                     save_tasks_to_file(st.session_state.tasks)
                                     st.rerun()
+                            
+                            # --- КОЛОНКА 3: Confluence ---
                             with col3:
-                                confluence_text = generate_confluence_text(task)
-                                st.download_button(label="📥 Confluence", data=confluence_text, file_name=f"{task['title']}.txt", mime="text/plain", key=f"confluence_{task['id']}")
+                                try:
+                                    confluence_text = generate_confluence_text(task)
+                                    # Очистка имени файла от недопустимых символов
+                                    safe_title = "".join(c for c in task.get('title', 'task') if c.isalnum() or c in (' ', '.', '_')).rstrip()
+                                    st.download_button(
+                                        label="📥 Confluence", 
+                                        data=confluence_text, 
+                                        file_name=f"{safe_title}.txt", 
+                                        mime="text/plain", 
+                                        key=f"confluence_{task.get('id', 'unknown')}",
+                                        use_container_width=True
+                                    )
+                                except Exception as e:
+                                    st.error("Ошибка генерации текста")
+                                    st.write(f"Детали: {e}") # Это покажет, почему не работает кнопка
+                            
+                            # --- КОЛОНКА 4: Удалить ---
                             with col4:
-                                if st.button("🗑️ Удалить", key=f"delete_{task['id']}"):
-                                    st.session_state.tasks = [t for t in st.session_state.tasks if t["id"] != task["id"]]
+                                if st.button("🗑️ Удалить", key=f"delete_{task.get('id', 'unknown')}", type="secondary", use_container_width=True):
+                                    st.session_state.tasks = [t for t in st.session_state.tasks if t.get("id") != task.get("id")]
                                     save_tasks_to_file(st.session_state.tasks)
                                     st.rerun()
-                        
+           
                         st.markdown("---")
 
 # ================= ЭКРАН 2: НОВАЯ ЗАДАЧА =================
