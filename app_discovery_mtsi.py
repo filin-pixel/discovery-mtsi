@@ -509,26 +509,27 @@ if page == "📋 Список задач":
                             st.markdown("---")
                             st.markdown(f"**Проблема:** {task.get('problem', 'Не указана')}")
                             st.markdown(f"**Цель:** {task.get('business_goal', 'Не указана')}")
-                            
+
+                            # Кнопки управления (внутри expander'а, после всех секций с информацией)
                             col1, col2, col3, col4 = st.columns(4)
                             with col1:
-                                if st.button("✏️ Редактировать", key=f"edit_{task['id']}"):
-                                    st.session_state.editing_task_id = task["id"]
-                                    st.rerun()
-                            with col2:
-                                new_status = st.selectbox("Статус", ["Idea", "In Discovery", "Ready for Analyst", "Requirements Clarification", "Ready for Refinement"], index=["Idea", "In Discovery", "Ready for Analyst", "Requirements Clarification", "Ready for Refinement"].index(task["status"]), key=f"status_{task['id']}")
+                                new_status = st.selectbox("Изменить статус",["Idea", "In Discovery", "Ready for Analyst", "Requirements Clarification", "Ready for Refinement"], index=["Idea", "In Discovery", "Ready for Analyst", "Requirements Clarification", "Ready for Refinement"].index(task["status"]), key=f"status_{task['id']}")
                                 if new_status != task["status"]:
                                     task["status"] = new_status
                                     save_tasks_to_file(st.session_state.tasks)
                                     st.rerun()
+                            with col2:
+                                if st.button("✏️ Редактировать", key=f"edit_{task['id']}"):
+                                st.session_state.editing_task_id = task["id"]
+                                st.rerun()
                             with col3:
                                 confluence_text = generate_confluence_text(task)
-                                st.download_button(label="📥 Confluence", data=confluence_text, file_name=f"{task['title']}.txt", mime="text/plain", key=f"confluence_{task['id']}")
+                                st.download_button(label="📥 Confluence", data=confluence_text, file_name=f"{task['title']}_confluence.txt", mime="text/plain", key=f"confluence_{task['id']}")
                             with col4:
                                 if st.button("🗑️ Удалить", key=f"delete_{task['id']}"):
-                                    st.session_state.tasks = [t for t in st.session_state.tasks if t["id"] != task["id"]]
-                                    save_tasks_to_file(st.session_state.tasks)
-                                    st.rerun()
+                                st.session_state.tasks = [t for t in st.session_state.tasks if t["id"] != task["id"]]
+                                save_tasks_to_file(st.session_state.tasks)
+                                st.rerun()
                         
                         st.markdown("---")
 
