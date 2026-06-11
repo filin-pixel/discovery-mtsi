@@ -454,26 +454,6 @@ if page == "📋 Список задач":
             
             st.markdown(f"**Показано: {len(filtered)}**")
             st.markdown("---")
-
-            # 🔍 DEBUG: Показываем первую задачу, чтобы понять структуру
-            if len(tasks) > 0:
-                st.markdown("### 🔍 DEBUG: Первая импортированная задача")
-                first_task = tasks[0]
-                st.json({
-                    "title": first_task.get("title"),
-                    "status": first_task.get("status"),
-                    "business_value": first_task.get("business_value"),
-                    "priority": first_task.get("priority"),
-                    "urgency": first_task.get("urgency"),
-                    "complexity": first_task.get("complexity")
-                })
-    
-            # Проверяем, почему не проходит фильтр
-            st.write("**Почему не показывается:**")
-            st.write(f"  - Статус '{first_task.get('status')}' в фильтре {status_filter}? {first_task.get('status') in status_filter}")
-            st.write(f"  - Ценность '{first_task.get('business_value')}' в фильтре {value_filter}? {first_task.get('business_value') in value_filter}")
-            task_priority = first_task.get("priority", "") or "Без приоритета"
-            st.write(f"  - Приоритет '{task_priority}' в фильтре {priority_filter}? {task_priority in priority_filter}")
             
             # ===== ТАБЛИЧНОЕ ОТОБРАЖЕНИЕ =====
             for task in filtered:
