@@ -510,10 +510,10 @@ if page == "📋 Список задач":
                             st.markdown(f"**Проблема:** {task.get('problem', 'Не указана')}")
                             st.markdown(f"**Цель:** {task.get('business_goal', 'Не указана')}")
 
-                            # Кнопки управления (внутри expander'а, после всех секций с информацией)
+                            # Кнопки управления
                             col1, col2, col3, col4 = st.columns(4)
                             with col1:
-                                new_status = st.selectbox("Изменить статус",["Idea", "In Discovery", "Ready for Analyst", "Requirements Clarification", "Ready for Refinement"], index=["Idea", "In Discovery", "Ready for Analyst", "Requirements Clarification", "Ready for Refinement"].index(task["status"]), key=f"status_{task['id']}")
+                                new_status = st.selectbox("Изменить статус", ["Idea", "In Discovery", "Ready for Analyst", "Requirements Clarification", "Ready for Refinement"], index=["Idea", "In Discovery", "Ready for Analyst", "Requirements Clarification", "Ready for Refinement"].index(task["status"]), key=f"status_{task['id']}")
                                 if new_status != task["status"]:
                                     task["status"] = new_status
                                     save_tasks_to_file(st.session_state.tasks)
