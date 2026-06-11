@@ -5,46 +5,7 @@ import os
 import pandas as pd
 from pathlib import Path
 
-st.set_page_config(page_title="Discovery Manager", page_icon="🚀", layout="wide")
-
-# ================= ДЕМО-ДАННЫЕ (одна задача) =================
-DEMO_TASKS = [
-    {
-        "id": 1,
-        "title": "Пополнение в выходной день",
-        "type": "Улучшение",
-        "problem": "Клиенты не могут пополнить счет в выходные",
-        "audience": "Активные клиенты",
-        "business_goal": "Улучшить NPS",
-        "metrics": "NPS, влияние на отложенное поручение",
-        "impact": "Недовольство клиентов",
-        "as_is": "Пополнение только в рабочие дни",
-        "to_be": "Пополнение 24/7 без вывода день в день",
-        "use_cases": "Клиент → Выходной день → Пополняет счет",
-        "dependencies": "Нет",
-        "constraints": "Без вывода день в день",
-        "risks": "Не учитывается сумма пополнения в общей сумме инвестиций",
-        "acceptance_criteria": "",
-        "subtasks": "",
-        "technical_estimate": "",
-        "detailed_dependencies": "",
-        "analyst_deadline": "",
-        "priority": "",
-        "rice_score": 0,
-        "reach": 0,
-        "impact_rice": 0,
-        "confidence": 0,
-        "effort": 0,
-        "executive_priority": False,
-        "urgency": "High",
-        "business_value": "Medium",
-        "complexity": "S",
-        "status": "In Discovery",
-        "owner": "",
-        "created_date": "2026-06-10",
-        "prioritized_at": ""
-    }
-]
+st.set_page_config(page_title="Discovery Manager МТС Инвестиции", page_icon="🚀", layout="wide")
 
 # ================= КОНСТАНТЫ =================
 BUSINESS_FIELDS = {
@@ -52,7 +13,7 @@ BUSINESS_FIELDS = {
     "audience": "Целевая аудитория",
     "business_goal": "Бизнес-цель",
     "metrics": "Метрики успеха",
-    "impact": "Что будет если не сделать",
+    "impact": "Что будет если не сделать?",
     "use_cases": "Основной сценарий"
 }
 
@@ -421,7 +382,7 @@ if page == "📋 Список задач":
             with col2:
                 st.metric("⚠️ Требуют заполнения", needs_business_fill)
             with col3:
-                st.metric("🟠 Готовы к аналитику", ready_for_analyst)
+                st.metric("🟠 Готовы к аналитизу", ready_for_analyst)
             with col4:
                 st.metric("📊 Не приоритезировано", not_prioritized)
             with col5:
@@ -468,8 +429,6 @@ if page == "📋 Список задач":
                         st.markdown("**Ёмкость**")
                     with col_header6:
                         st.markdown("**Приоритет**")
-                    
-                    st.markdown("---")
                     
                     col1, col2, col3, col4, col5, col6 = st.columns([4, 2, 1.3, 1.3, 1, 1])
                     
