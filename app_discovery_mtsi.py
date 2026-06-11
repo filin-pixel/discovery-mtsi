@@ -428,28 +428,33 @@ if page == "📋 Список задач":
                 st.metric("🚨 Просрочено", overdue)
             
             st.markdown("---")
-            
-            col1, col2, col3 = st.columns(3)
+
+            col1, col2, col3, col4 = st.columns(4)
             with col1:
                 status_filter = st.multiselect("Статус", ["Idea", "In Discovery", "Ready for Analyst", "Requirements Clarification", "Ready for Refinement"], default=["Idea", "In Discovery", "Ready for Analyst", "Requirements Clarification", "Ready for Refinement"])
             with col2:
                 value_filter = st.multiselect("Бизнес-ценность", ["High", "Medium", "Low"], default=["High", "Medium", "Low"])
             with col3:
+                urgency_filter = st.multiselect("Срочность", ["High", "Medium", "Low"], default=["High", "Medium", "Low"])
+            with col4:
                 priority_filter = st.multiselect("Приоритет", ["P1", "P2", "P3", "P4", "Без приоритета"], default=["P1", "P2", "P3", "P4", "Без приоритета"])
 
             filtered = []
             for t in tasks:
                 # Статус: если поле пустое, всё равно показываем
                 status_ok = not t.get("status") or t["status"] in status_filter
-    
+                
                 # Ценность: если поле пустое, всё равно показываем
                 value_ok = not t.get("business_value") or t["business_value"] in value_filter
-    
+                
+                # Срочность: если поле пустое, всё равно показываем
+                urgency_ok = not t.get("urgency") or t["urgency"] in urgency_filter
+                
                 # Приоритет: если нет приоритета, считаем "Без приоритета"
                 task_priority = t.get("priority", "") or "Без приоритета"
                 priority_ok = task_priority in priority_filter
-    
-                if status_ok and value_ok and priority_ok:
+                
+                if status_ok and value_ok and urgency_ok and priority_ok:
                     filtered.append(t)
             
             st.markdown(f"**Показано: {len(filtered)}**")
