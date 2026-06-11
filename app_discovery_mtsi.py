@@ -467,7 +467,7 @@ if page == "📋 Список задач":
                     })
                     if analyst_deadline:
                         task_to_edit["analyst_deadline"] = analyst_deadline.strftime("%Y-%m-%d")
-                                    if submitted:
+                if submitted:
                     task_to_edit.update({
                         "title": title, "type": task_type, "owner": owner,
                         "problem": problem, "audience": audience, "business_goal": business_goal,
