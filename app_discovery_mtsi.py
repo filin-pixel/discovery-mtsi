@@ -7,6 +7,41 @@ from pathlib import Path
 
 st.set_page_config(page_title="Discovery Manager МТС Инвестиции", page_icon="🚀", layout="wide")
 
+# ==========================================
+# 🔐 АВТОРИЗАЦИЯ
+# ==========================================
+
+def check_authentication():
+    """Проверка пароля для доступа к приложению"""
+    if "authenticated" not in st.session_state:
+        st.session_state.authenticated = False
+    
+    if not st.session_state.authenticated:
+        st.title("🔐 Discovery Manager")
+        st.markdown("### Введите пароль для доступа к системе")
+        st.markdown("---")
+        
+        password_input = st.text_input("Пароль", type="password", key="password_input")
+        
+        col1, col2 = st.columns([1, 4])
+        with col1:
+            if st.button("Войти", type="primary", use_container_width=True):
+                correct_password = st.secrets.get("auth", {}).get("password", "")
+                
+                if password_input == correct_password and correct_password:
+                    st.session_state.authenticated = True
+                    st.rerun()
+                else:
+                    st.error("❌ Неверный пароль")
+        
+        st.stop()
+
+check_authentication()
+
+# ==========================================
+# КОНЕЦ БЛОКА АВТОРИЗАЦИИ
+# ==========================================
+
 # ================= КОНСТАНТЫ =================
 BUSINESS_FIELDS = {
     "problem": "Проблема/Возможность",
