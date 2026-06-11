@@ -491,8 +491,8 @@ if page == "📋 Список задач":
             for task in filtered:
                 readiness = check_readiness(task)
                 status_emoji = {"Idea": "⚪", "In Discovery": "🔵", "Ready for Analyst": "🟠", "Requirements Clarification": "🟣", "Ready for Refinement": "✅"}[task["status"]]
-                value_emoji = {"High": "🔴", "Medium": "🟡", "Low": "🟢"}[task["business_value"]]
-                urgency_emoji = "🔴" if task.get("urgency") == "High" else "🟡" if task.get("urgency") == "Medium" else "🟢"
+                value_emoji = {"High": "🔴", "Medium": "🟡", "Low": "🟢", "Не определено": "⚪"}.get(task.get("business_value", "Не определено"), "⚪")
+                urgency_emoji = {"High": "🔴", "Medium": "🟡", "Low": "🟢", "Не определено": "⚪"}.get(task.get("urgency", "Не определено"), "⚪")
                 exec_badge = " 👑" if task.get("executive_priority") else ""
                 
                 priority = task.get("priority", "")
