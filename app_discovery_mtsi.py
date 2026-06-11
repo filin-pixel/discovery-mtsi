@@ -363,13 +363,19 @@ if page == "📋 Список задач":
                     analyst_deadline = st.date_input("Срок анализа", value=default_date)
                 else:
                     analyst_deadline = None
-                
+
                 st.subheader("📊 Приоритизация")
                 col1, col2, col3 = st.columns(3)
                 with col1:
-                    urgency = st.selectbox("Срочность", ["High", "Medium", "Low"])
+                    urgency_options = ["High", "Medium", "Low", "Не определено"]
+                    urgency_default = task_to_edit.get("urgency", "Не определено") or "Не определено"
+                    urgency_index = urgency_options.index(urgency_default) if urgency_default in urgency_options else 3
+                    urgency = st.selectbox("Срочность", urgency_options, index=urgency_index)
                 with col2:
-                    business_value = st.selectbox("Бизнес-ценность", ["High", "Medium", "Low"])
+                    value_options = ["High", "Medium", "Low", "Не определено"]
+                    value_default = task_to_edit.get("business_value", "Не определено") or "Не определено"
+                    value_index = value_options.index(value_default) if value_default in value_options else 3
+                    business_value = st.selectbox("Бизнес-ценность", value_options, index=value_index)
                 with col3:
                     complexity = st.selectbox("Сложность", ["S", "M", "L", "XL", "XXL"])
                 
