@@ -7,45 +7,6 @@ from pathlib import Path
 
 st.set_page_config(page_title="Discovery Manager", page_icon="🚀", layout="wide")
 
-# ================= ДЕМО-ДАННЫЕ (одна задача) =================
-DEMO_TASKS = [
-    {
-        "id": 1,
-        "title": "Пополнение в выходной день",
-        "type": "Улучшение",
-        "problem": "Клиенты не могут пополнить счет в выходные",
-        "audience": "Активные клиенты",
-        "business_goal": "Улучшить NPS",
-        "metrics": "NPS, влияние на отложенное поручение",
-        "impact": "Недовольство клиентов",
-        "as_is": "Пополнение только в рабочие дни",
-        "to_be": "Пополнение 24/7 без вывода день в день",
-        "use_cases": "Клиент → Выходной день → Пополняет счет",
-        "dependencies": "Нет",
-        "constraints": "Без вывода день в день",
-        "risks": "Не учитывается сумма пополнения в общей сумме инвестиций",
-        "acceptance_criteria": "",
-        "subtasks": "",
-        "technical_estimate": "",
-        "detailed_dependencies": "",
-        "analyst_deadline": "",
-        "priority": "P1",
-        "rice_score": 2.5,
-        "reach": 5,
-        "impact_rice": 2,
-        "confidence": 80,
-        "effort": 1,
-        "executive_priority": False,
-        "urgency": "High",
-        "business_value": "Medium",
-        "complexity": "S",
-        "status": "In Discovery",
-        "owner": "",
-        "created_date": "2026-06-10",
-        "prioritized_at": ""
-    }
-]
-
 # ================= КОНСТАНТЫ =================
 BUSINESS_FIELDS = {
     "problem": "Проблема/Возможность",
@@ -86,12 +47,16 @@ URGENCY_HINTS = {
 # ================= ФУНКЦИИ =================
 def check_readiness(task):
     filled_business = [f for f in BUSINESS_FIELDS if task.get(f)]
+    filled_analyst = [f for f in ANALYST_FIELDS if task.get(f)]
     business_progress = len(filled_business) / len(BUSINESS_FIELDS)
+    analyst_progress = len(filled_analyst) / len(ANALYST_FIELDS)
     is_ready_for_analyst = business_progress >= 0.83
     return {
         "business_progress": business_progress,
+        "analyst_progress": analyst_progress,
         "is_ready_for_analyst": is_ready_for_analyst,
-        "missing_business": [f for f in BUSINESS_FIELDS if not task.get(f)]
+        "missing_business": [f for f in BUSINESS_FIELDS if not task.get(f)],
+        "missing_analyst": [f for f in ANALYST_FIELDS if not task.get(f)]
     }
 
 def calculate_rice(reach, impact, confidence, effort):
@@ -226,7 +191,7 @@ if "tasks" not in st.session_state:
     if saved_tasks:
         st.session_state.tasks = saved_tasks
     else:
-        st.session_state.tasks = DEMO_TASKS.copy()
+        st.session_state.tasks = []
 
 if "editing_task_id" not in st.session_state:
     st.session_state.editing_task_id = None
@@ -368,14 +333,14 @@ if page == "📋 Список задач":
                     st.session_state.editing_task_id = None
                     st.success("✅ Сохранено!")
                     st.rerun()
-                if cancelled:
-                    st.session_state.editing_task_id = None
-                    st.rerun()
+            if cancelled:
+                st.session_state.editing_task_id = None
+                st.rerun()
     else:
         st.header("Бэклог инициатив")
         
         if not st.session_state.tasks:
-            st.info("ℹ️ Нет задач")
+            st.info("ℹ️ Нет задач. Импортируйте задачи из Excel или создайте новую задачу.")
         else:
             tasks = st.session_state.tasks
             
@@ -441,7 +406,7 @@ if page == "📋 Список задач":
                 exec_badge = " 👑" if task.get("executive_priority") else ""
                 
                 priority = task.get("priority", "")
-                priority_display = f"⭐ {priority}" if priority else "⚪ —"
+                priority_display = priority if priority else "—"
                 
                 # ===== СТРОКА ЗАДАЧИ =====
                 col1, col2, col3, col4, col5, col6 = st.columns([4, 2, 1.3, 1.3, 1, 1])
@@ -460,7 +425,7 @@ if page == "📋 Список задач":
                 with col5:
                     st.markdown(f"⏱ {task.get('complexity', 'M')}")
                 with col6:
-                    st.markdown(priority_display)
+                    st.markdown(f"⭐ {priority_display}")
                 
                 st.markdown("---")
                 
@@ -515,6 +480,7 @@ elif page == "➕ Новая задача":
         1. Нажми кнопку ниже
         2. Заполни основную информацию
         3. Система создаст задачу со статусом **Idea**
+        4. Дополни детали через редактирование в списке задач
         """)
         st.markdown("---")
         col1, col2, col3 = st.columns([1, 2, 1])
