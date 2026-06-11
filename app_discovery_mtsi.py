@@ -215,7 +215,7 @@ if "tasks" not in st.session_state:
     if saved_tasks:
         st.session_state.tasks = saved_tasks
     else:
-        st.session_state.tasks = DEMO_TASKS.copy()
+        st.session_state.tasks = []
 
 if "editing_task_id" not in st.session_state:
     st.session_state.editing_task_id = None
