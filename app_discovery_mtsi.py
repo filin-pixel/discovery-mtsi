@@ -436,8 +436,21 @@ if page == "📋 Список задач":
                 value_filter = st.multiselect("Бизнес-ценность", ["High", "Medium", "Low"], default=["High", "Medium", "Low"])
             with col3:
                 priority_filter = st.multiselect("Приоритет", ["P1", "P2", "P3", "P4", "Без приоритета"], default=["P1", "P2", "P3", "P4", "Без приоритета"])
-            
-            filtered = [t for t in tasks if t["status"] in status_filter and t["business_value"] in value_filter and (t.get("priority", "") or "Без приоритета") in priority_filter]
+
+            filtered = []
+            for t in tasks:
+                # Статус: если поле пустое, всё равно показываем
+                status_ok = not t.get("status") or t["status"] in status_filter
+    
+                # Ценность: если поле пустое, всё равно показываем
+                value_ok = not t.get("business_value") or t["business_value"] in value_filter
+    
+                # Приоритет: если нет приоритета, считаем "Без приоритета"
+                task_priority = t.get("priority", "") or "Без приоритета"
+                priority_ok = task_priority in priority_filter
+    
+                if status_ok and value_ok and priority_ok:
+                    filtered.append(t)
             
             st.markdown(f"**Показано: {len(filtered)}**")
             st.markdown("---")
