@@ -520,8 +520,8 @@ if page == "📋 Список задач":
                                     st.rerun()
                             with col2:
                                 if st.button("✏️ Редактировать", key=f"edit_{task['id']}"):
-                                st.session_state.editing_task_id = task["id"]
-                                st.rerun()
+                                    st.session_state.editing_task_id = task["id"]
+                                    st.rerun()
                             with col3:
                                 confluence_text = generate_confluence_text(task)
                                 st.download_button(label="📥 Confluence", data=confluence_text, file_name=f"{task['title']}_confluence.txt", mime="text/plain", key=f"confluence_{task['id']}")
