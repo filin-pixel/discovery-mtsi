@@ -1,0 +1,14 @@
+# НЕ КОММИТИТЬ файл с паролем!
+.streamlit/secrets.toml
+
+# Стандартные исключения Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.DS_Store
+*.log
