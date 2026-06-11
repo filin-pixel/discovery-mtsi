@@ -412,7 +412,10 @@ if page == "📋 Список задач":
                     value_index = value_options.index(value_default) if value_default in value_options else 3
                     business_value = st.selectbox("Бизнес-ценность", value_options, index=value_index)
                 with col3:
-                    complexity = st.selectbox("Сложность", ["S", "M", "L", "XL", "XXL"])
+                    complexity_options = ["S", "M", "L", "XL", "XXL"]
+                    complexity_default = task_to_edit.get("complexity", "S")
+                    complexity_index = complexity_options.index(complexity_default) if complexity_default in complexity_options else 0
+                    complexity = st.selectbox("Сложность", complexity_options, index=complexity_index)
                 
                 col1, col2 = st.columns(2)
                 with col1:
