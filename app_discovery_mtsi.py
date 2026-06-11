@@ -475,17 +475,11 @@ if page == "📋 Список задач":
                     col_header1, col_header2, col_header3, col_header4, col_header5, col_header6 = st.columns([4, 2, 1.3, 1.3, 1, 1])
                     
                     with col_header1:
-                        st.markdown("**Задача**")
                     with col_header2:
-                        st.markdown("**Статус**")
                     with col_header3:
-                        st.markdown("**Срочность**")
                     with col_header4:
-                        st.markdown("**Бизнес-ценность**")
                     with col_header5:
-                        st.markdown("**Ёмкость**")
                     with col_header6:
-                        st.markdown("**Приоритет**")
                     
                     col1, col2, col3, col4, col5, col6 = st.columns([4, 2, 1.3, 1.3, 1, 1])
                     
