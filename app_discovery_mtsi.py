@@ -556,7 +556,24 @@ if page == "📋 Список задач":
                 
                 if status_ok and value_ok and urgency_ok and priority_ok:
                     filtered.append(t)
-            
+            # 🔍 DEBUG: Показываем, почему задачи не прошли фильтр
+            if len(filtered) < len(tasks):
+                st.warning(f"⚠️ {len(tasks) - len(filtered)} задач отфильтровано. Нажмите ниже, чтобы увидеть детали")
+                with st.expander(f"🔍 Показать почему {len(tasks) - len(filtered)} задач не показаны"):
+                    for i, t in enumerate(tasks):
+                        if t not in filtered:
+                            status_ok = t.get("status") in status_filter if t.get("status") else False
+                            value_ok = t.get("business_value") in value_filter if t.get("business_value") else False
+                            urgency_ok = t.get("urgency") in urgency_filter if t.get("urgency") else False
+                            task_priority = t.get("priority", "") or "Без приоритета"
+                            priority_ok = task_priority in priority_filter
+                            
+                            st.write(f"**{i+1}. {t.get('title', 'Без названия')}**")
+                            st.write(f"  - Статус: `{t.get('status', 'ПУСТО')}` → {'✅' if status_ok else '❌'}")
+                            st.write(f"  - Ценность: `{t.get('business_value', 'ПУСТО')}` → {'✅' if value_ok else '❌'}")
+                            st.write(f"  - Срочность: `{t.get('urgency', 'ПУСТО')}` → {'✅' if urgency_ok else '❌'}")
+                            st.write(f"  - Приоритет: `{task_priority}` → {'✅' if priority_ok else '❌'}")
+                            st.markdown("---")
             st.markdown(f"**Показано: {len(filtered)}**")
             st.markdown("---")
 
