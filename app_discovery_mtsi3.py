@@ -82,19 +82,60 @@ URGENCY_HINTS = {
 
 # ================= ФУНКЦИИ =================
 def auto_update_status(task):
-    """Автоматически обновляет статус задачи"""
+    """Автоматически обновляет статус задачи на основе заполненности полей"""
     current_status = task.get("status", "Idea")
+    changed = False
     
     # Проверяем заполненность полей
     has_problem = bool(task.get("problem", "").strip())
     has_goal = bool(task.get("business_goal", "").strip())
+    has_audience = bool(task.get("audience", "").strip())
+    has_metrics = bool(task.get("metrics", "").strip())
+    has_impact = bool(task.get("impact", "").strip())
+    has_use_cases = bool(task.get("use_cases", "").strip())
     
-    # Переход 1: Idea → In Discovery
+    business_fields_count = sum([has_problem, has_goal, has_audience, has_metrics, has_impact, has_use_cases])
+    business_progress = business_fields_count / 6
+    
+    # Поля аналитика
+    has_acceptance = bool(task.get("acceptance_criteria", "").strip())
+    has_subtasks = bool(task.get("subtasks", "").strip())
+    has_tech_estimate = bool(task.get("technical_estimate", "").strip())
+    
+    # ===== ПЕРЕХОДЫ =====
+    
+    # 1. Idea → In Discovery: заполнены проблема и цель
     if current_status == "Idea" and has_problem and has_goal:
         task["status"] = "In Discovery"
-        return True
+        changed = True
     
-    return False
+    # 2. In Discovery → Ready for Analyst: бизнес-поля заполнены на 83%+ (5 из 6)
+    if current_status == "In Discovery" and business_progress >= 0.83:
+        task["status"] = "Ready for Analyst"
+        # Автоматически ставим дедлайн +7 дней
+        if not task.get("analyst_deadline"):
+            task["analyst_deadline"] = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
+        changed = True
+    
+    # 3. Ready for Analyst → In Analysis: аналитик начал заполнять поля
+    if current_status == "Ready for Analyst" and (has_acceptance or has_subtasks):
+        task["status"] = "In Analysis"
+        changed = True
+    
+    # 4. In Analysis → Prioritization: аналитик заполнил требования (Acceptance + Subtasks)
+    if current_status == "In Analysis" and has_acceptance and has_subtasks:
+        task["status"] = "Prioritization"
+        changed = True
+    
+    # 5. Prioritization → Ready for Refinement: задача приоритезирована (RICE score установлен)
+    if current_status == "Prioritization" and task.get("rice_score", 0) > 0:
+        task["status"] = "Ready for Refinement"
+        changed = True
+    
+    # 6. Ready for Refinement → Ready for Sprint: ручной переход (после grooming)
+    # Этот переход делаем вручную через selectbox статуса
+    
+    return changed
 
 def check_readiness(task):
     filled_business = [f for f in BUSINESS_FIELDS if task.get(f)]
