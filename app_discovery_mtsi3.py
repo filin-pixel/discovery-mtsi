@@ -544,7 +544,7 @@ if page == "📋 Список задач":
             with col1:
                 st.metric("Всего задач", len(tasks))
             with col2:
-                st.metric("⚠️ Требуют заполнения", needs_business_fill)
+                st.metric("📝 Требуют заполнения", needs_business_fill)
             with col3:
                 st.metric("🟠 Готовы к аналитику", ready_for_analyst)
             with col4:
