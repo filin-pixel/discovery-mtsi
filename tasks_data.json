@@ -17,7 +17,7 @@
     "subtasks": "",
     "technical_estimate": "",
     "detailed_dependencies": "",
-    "analyst_deadline": "",
+    "analyst_deadline": "2026-06-23",
     "priority": "",
     "rice_score": 0,
     "reach": 0,
@@ -28,8 +28,10 @@
     "urgency": "High",
     "business_value": "High",
     "complexity": "S",
-    "status": "Idea",
+    "status": "Ready for Analyst",
     "created_date": "2026-06-16",
-    "prioritized_at": ""
+    "prioritized_at": "",
+    "type": "Бизнес-фича",
+    "owner": ""
   }
 ]
