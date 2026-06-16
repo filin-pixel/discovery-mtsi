@@ -579,39 +579,37 @@ if page == "📋 Список задач":
             
             today = datetime.now().date()
             overdue = sum(1 for t in tasks if t.get("analyst_deadline") and t["status"] in ["Ready for Analyst", "Requirements Clarification"] and datetime.strptime(t["analyst_deadline"], "%Y-%m-%d").date() < today)
+            
+            st.markdown("### 🔄 Воронка задач")
+            # Считаем задачи по статусам
+            status_counts = {
+                "Idea": sum(1 for t in tasks if t.get("status") == "Idea"),
+                "In Discovery": sum(1 for t in tasks if t.get("status") == "In Discovery"),
+                "Ready for Analyst": sum(1 for t in tasks if t.get("status") == "Ready for Analyst"),
+                "In Analysis": sum(1 for t in tasks if t.get("status") == "In Analysis"),
+                "Prioritization": sum(1 for t in tasks if t.get("status") == "Prioritization"),
+                "Ready for Refinement": sum(1 for t in tasks if t.get("status") == "Ready for Refinement"),
+                "Ready for Sprint": sum(1 for t in tasks if t.get("status") == "Ready for Sprint")
+            }
 
-            st.markdown("### 📈 Дэшборд")
-            # Ряд 1: Основные метрики
-            col1, col2, col3, col4 = st.columns(4)
+            # Отображаем воронку в одну строку
+            col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
+
             with col1:
-                st.metric("📋 Всего задач", len(tasks))
+                st.metric("⚪ Idea", status_counts["Idea"])
             with col2:
-                in_discovery = sum(1 for t in tasks if t.get("status") == "In Discovery")
-                st.metric("🔵 In Discovery", in_discovery)
+                st.metric("🔵 Discovery", status_counts["In Discovery"])
             with col3:
-                ready_analyst = sum(1 for t in tasks if t.get("status") == "Ready for Analyst")
-                st.metric("🟠 Готовы к аналитику", ready_analyst)
+                st.metric("🟠 Analyst", status_counts["Ready for Analyst"])
             with col4:
-                not_prioritized = sum(1 for t in tasks if not t.get("priority") and t.get("status") not in ["Ready for Refinement", "Ready for Sprint"])
-                st.metric("📊 Не приоритезировано", not_prioritized)
+                st.metric("🟣 Analysis", status_counts["In Analysis"])
+            with col5:
+                st.metric("⚠️ RICE", status_counts["Prioritization"])
+            with col6:
+                st.metric("🔷 Refinement", status_counts["Ready for Refinement"])
+            with col7:
+                st.metric("✅ Sprint", status_counts["Ready for Sprint"])
 
-            st.markdown("---")
-
-            # Ряд 2: Готовность к спринту
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                ready_refinement = sum(1 for t in tasks if t.get("status") == "Ready for Refinement")
-                st.metric("🔷 Готово к грумингу", ready_refinement)
-            with col2:
-                ready_sprint = sum(1 for t in tasks if t.get("status") == "Ready for Sprint")
-                st.metric("✅ Готовы к спринту", ready_sprint)
-            with col3:
-                today = datetime.now().date()
-                overdue = sum(1 for t in tasks if t.get("analyst_deadline") and t.get("status") in ["Ready for Analyst", "In Analysis"] and datetime.strptime(t["analyst_deadline"], "%Y-%m-%d").date() < today)
-                st.metric("🚨 Просрочено", overdue)
-            with col4:
-                active_count = len([t for t in tasks if t.get("status") not in ["Ready for Sprint"]])
-                st.metric("📊 Активных", active_count)
             st.markdown("---")
 
             col1, col2, col3, col4 = st.columns(4)
