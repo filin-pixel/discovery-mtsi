@@ -599,15 +599,15 @@ if page == "📋 Список задач":
             with col2:
                 st.metric("🔵 Discovery", status_counts["In Discovery"])
             with col3:
-                st.metric("🟠 Analyst", status_counts["Ready for Analyst"])
+                st.metric("🟠 Ready for Analyst", status_counts["Ready for Analyst"])
             with col4:
-                st.metric("🟣 Analysis", status_counts["In Analysis"])
+                st.metric("🟣 In Analysis", status_counts["In Analysis"])
             with col5:
                 st.metric("⚠️ RICE", status_counts["Prioritization"])
             with col6:
-                st.metric("🔷 Refinement", status_counts["Ready for Refinement"])
+                st.metric("🔷 Ready for Refinement", status_counts["Ready for Refinement"])
             with col7:
-                st.metric("✅ Sprint", status_counts["Ready for Sprint"])
+                st.metric("✅ Ready for Sprint", status_counts["Ready for Sprint"])
 
             st.markdown("---")
 
