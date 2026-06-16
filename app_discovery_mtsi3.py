@@ -538,20 +538,39 @@ if page == "📋 Список задач":
             
             today = datetime.now().date()
             overdue = sum(1 for t in tasks if t.get("analyst_deadline") and t["status"] in ["Ready for Analyst", "Requirements Clarification"] and datetime.strptime(t["analyst_deadline"], "%Y-%m-%d").date() < today)
-            
+
             st.markdown("### 📈 Дэшборд")
-            col1, col2, col3, col4, col5 = st.columns(5)
+            # Ряд 1: Основные метрики
+            col1, col2, col3, col4 = st.columns(4)
             with col1:
-                st.metric("Всего задач", len(tasks))
+                st.metric("📋 Всего задач", len(tasks))
             with col2:
-                st.metric("📝 Требуют заполнения", needs_business_fill)
+                in_discovery = sum(1 for t in tasks if t.get("status") == "In Discovery")
+                st.metric("🔵 In Discovery", in_discovery)
             with col3:
-                st.metric("🟠 Готовы к аналитику", ready_for_analyst)
+                ready_analyst = sum(1 for t in tasks if t.get("status") == "Ready for Analyst")
+                st.metric("🟠 Готовы к аналитику", ready_analyst)
             with col4:
+                not_prioritized = sum(1 for t in tasks if not t.get("priority") and t.get("status") not in ["Ready for Refinement", "Ready for Sprint"])
                 st.metric("📊 Не приоритезировано", not_prioritized)
-            with col5:
+
+            st.markdown("---")
+
+            # Ряд 2: Готовность к спринту
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                ready_refinement = sum(1 for t in tasks if t.get("status") == "Ready for Refinement")
+                st.metric("🔷 Готово к грумингу", ready_refinement)
+            with col2:
+                ready_sprint = sum(1 for t in tasks if t.get("status") == "Ready for Sprint")
+                st.metric("✅ Готовы к спринту", ready_sprint)
+            with col3:
+                today = datetime.now().date()
+                overdue = sum(1 for t in tasks if t.get("analyst_deadline") and t.get("status") in ["Ready for Analyst", "In Analysis"] and datetime.strptime(t["analyst_deadline"], "%Y-%m-%d").date() < today)
                 st.metric("🚨 Просрочено", overdue)
-            
+            with col4:
+            # Пустая колонка для баланса
+            st.metric(" Активных", len([t for t in tasks if t.get("status") not in ["Ready for Sprint"]]))
             st.markdown("---")
 
             col1, col2, col3, col4 = st.columns(4)
