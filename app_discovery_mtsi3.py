@@ -368,14 +368,21 @@ if page == "📋 Список задач":
     with st.expander("📖 Легенда", expanded=False):
         col_legend1, col_legend2, col_legend3 = st.columns(3)
         with col_legend1:
-            st.markdown("**Статусы задач:**")
+            st.markdown("**📌 Статусы задач:**")
             st.markdown("""
-            - ⚪ **Idea** — идея
-            - 🔵 **In Discovery** — бизнес заполняет шаблон
-            - **Ready for Analyst** — готово к передаче аналитику
-            - 🟣 **Requirements Clarification** — аналитик уточняет
-            - ✅ **Ready for Refinement** — готово к команде
+            - ⚪ **Idea** — инициатор создаёт задачу, заполняет базовые поля
+            - 🔵 **In Discovery** — бизнес-поля заполнены, кнопка "Передать аналитику"
+            - 🟠 **Ready for Analyst** — аналитик берёт задачу в анализ
+            - 🟣 **In Analysis** — аналитик пишет требования
+            - 🟡 **Prioritization** — задача проходит приоритезацию (RICE)
             """)
+        with col_legend2:
+            st.markdown("**📌 Статусы задач (продолжение):**")
+            st.markdown("""
+            - 🟢 **Ready for Refinement** — grooming с командой
+            - ✅ **Ready for Sprint** — задача готова к спринту
+            """)
+
         with col_legend2:
             st.markdown("**⏰ Срочность:**")
             st.markdown("""
