@@ -566,7 +566,6 @@ if page == "📋 Список задач":
                     st.session_state.editing_task_id = None
                     st.rerun()
     else:
-        st.header("Бэклог инициатив")
         
         if not st.session_state.tasks:
             st.info("ℹ️ Нет задач")
