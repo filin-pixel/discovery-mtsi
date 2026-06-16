@@ -561,7 +561,7 @@ if page == "📋 Список задач":
 
             col1, col2, col3, col4 = st.columns(4)
             with col1:
-                status_filter = st.multiselect("Статус", ["Idea", "In Discovery", "Ready for Analyst", "Requirements Clarification", "Ready for Refinement"], default=["Idea", "In Discovery", "Ready for Analyst", "Requirements Clarification", "Ready for Refinement"])
+                status_filter = st.multiselect("Статус", ["Idea", "In Discovery", "Ready for Analyst", "In Analysis", "Prioritization", "Ready for Refinement", "Ready for Sprint"], default=["Idea", "In Discovery", "Ready for Analyst", "In Analysis", "Prioritization", "Ready for Refinement", "Ready for Sprint"])
             with col2:
                 value_filter = st.multiselect("Бизнес-ценность", ["High", "Medium", "Low", "Не определено"], default=["High", "Medium", "Low", "Не определено"])
             with col3:
@@ -671,13 +671,7 @@ if page == "📋 Список задач":
                                 current_status = task.get("status", "Idea")
                                 safe_index = status_options.index(current_status) if current_status in status_options else 0
                                 
-                                new_status = st.selectbox(
-                                    "Статус", 
-                                    status_options, 
-                                    index=safe_index, 
-                                    key=f"status_{task.get('id', 'unknown')}",
-                                    label_visibility="collapsed"
-                                )
+                                new_status = st.selectbox("Статус", ["Idea", "In Discovery", "Ready for Analyst", "In Analysis", "Prioritization", "Ready for Refinement", "Ready for Sprint"], index=["Idea", "In Discovery", "Ready for Analyst", "In Analysis", "Prioritization", "Ready for Refinement", "Ready for Sprint"].index(task["status"]) if task["status"] in ["Idea", "In Discovery", "Ready for Analyst", "In Analysis", "Prioritization", "Ready for Refinement", "Ready for Sprint"] else 0, key=f"status_{task['id']}")
                                 if new_status != current_status:
                                     task["status"] = new_status
                                     save_and_commit(st.session_state.tasks, f"Статус → {new_status}")
