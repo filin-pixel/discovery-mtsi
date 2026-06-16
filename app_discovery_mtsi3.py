@@ -374,7 +374,7 @@ if page == "📋 Список задач":
             - 🔵 **In Discovery** — бизнес заполняет требования 
             - 🟠 **Ready for Analyst** — готова к системному анализу
             - 🟣 **In Analysis** — написание требований
-            - 🟡 **Prioritization** — приоритезация RICE
+            - ⚠️ **Prioritization** — приоритезация RICE
             - 🔷 **Ready for Refinement** — grooming
             - ✅ **Ready for Sprint** — готова к спринту
             """)
@@ -605,7 +605,7 @@ if page == "📋 Список задач":
             # ТАБЛИЧНОЕ ОТОБРАЖЕНИЕ
             for task in filtered:
                 readiness = check_readiness(task)
-                status_emoji = {"Idea": "⚪", "In Discovery": "🔵", "Ready for Analyst": "🟠", "In Analysis": "🟣", "Prioritization": "🟡", "Ready for Refinement": "🔷", "Ready for Sprint": "✅"}.get(task["status"], "⚪")
+                status_emoji = {"Idea": "⚪", "In Discovery": "🔵", "Ready for Analyst": "🟠", "In Analysis": "🟣", "Prioritization": "⚠️", "Ready for Refinement": "🔷", "Ready for Sprint": "✅"}.get(task["status"], "⚪")
                 value_emoji = {"High": "🔴", "Medium": "🟡", "Low": "🟢", "Не определено": "⚪"}.get(task.get("business_value", "Не определено"), "⚪")
                 urgency_emoji = {"High": "", "Medium": "🟡", "Low": "🟢", "Не определено": "⚪"}.get(task.get("urgency", "Не определено"), "⚪")
                 exec_badge = " 👑" if task.get("executive_priority") else ""
