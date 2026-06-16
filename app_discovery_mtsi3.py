@@ -610,8 +610,8 @@ if page == "📋 Список задач":
                 overdue = sum(1 for t in tasks if t.get("analyst_deadline") and t.get("status") in ["Ready for Analyst", "In Analysis"] and datetime.strptime(t["analyst_deadline"], "%Y-%m-%d").date() < today)
                 st.metric("🚨 Просрочено", overdue)
             with col4:
-            # Пустая колонка для баланса
-            st.metric(" Активных", len([t for t in tasks if t.get("status") not in ["Ready for Sprint"]]))
+                active_count = len([t for t in tasks if t.get("status") not in ["Ready for Sprint"]])
+                st.metric("📊 Активных", active_count)
             st.markdown("---")
 
             col1, col2, col3, col4 = st.columns(4)
