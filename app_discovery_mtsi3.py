@@ -337,7 +337,7 @@ if "show_prioritization_tasks" not in st.session_state:
 st.title("🚀 Discovery Manager")
 st.markdown("Конвейер спринтов: Этап Discovery")
 
-page = st.sidebar.radio("Навигация", [" Список задач", "➕ Новая задача", "📊 Приоритезация задач", " Импорт задач"])
+page = st.sidebar.radio("Навигация", ["📋 Список задач", "➕ Новая задача", "📊 Приоритезация задач", "📥 Импорт задач"])
 
 # Индикатор Git-синхронизации
 git_token = st.secrets.get("github", {}).get("token", "")
@@ -369,7 +369,7 @@ if page == "📋 Список задач":
         with col_legend1:
             st.markdown("** Статусы задач:**")
             st.markdown("""
-            - ⚪ **Idea** — сырая идея
+            - ⚪ **Idea** — идея
             - 🔵 **In Discovery** — бизнес заполняет шаблон
             -  **Ready for Analyst** — готово к передаче аналитику
             - 🟣 **Requirements Clarification** — аналитик уточняет
