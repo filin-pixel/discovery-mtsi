@@ -81,6 +81,21 @@ URGENCY_HINTS = {
 }
 
 # ================= ФУНКЦИИ =================
+def auto_update_status(task):
+    """Автоматически обновляет статус задачи"""
+    current_status = task.get("status", "Idea")
+    
+    # Проверяем заполненность полей
+    has_problem = bool(task.get("problem", "").strip())
+    has_goal = bool(task.get("business_goal", "").strip())
+    
+    # Переход 1: Idea → In Discovery
+    if current_status == "Idea" and has_problem and has_goal:
+        task["status"] = "In Discovery"
+        return True
+    
+    return False
+
 def check_readiness(task):
     filled_business = [f for f in BUSINESS_FIELDS if task.get(f)]
     filled_analyst = [f for f in ANALYST_FIELDS if task.get(f)]
@@ -94,21 +109,6 @@ def check_readiness(task):
         "missing_business": [f for f in BUSINESS_FIELDS if not task.get(f)],
         "missing_analyst": [f for f in ANALYST_FIELDS if not task.get(f)]
     }
-
-def auto_update_status(task):
-    """Автоматически обновляет статус задачи на основе заполненности полей"""
-    current_status = task.get("status", "Idea")
-    
-    has_problem = bool(task.get("problem", "").strip())
-    has_goal = bool(task.get("business_goal", "").strip())
-    
-    readiness = check_readiness(task)
-    is_ready_for_analyst = readiness.get("is_ready_for_analyst", False)
-    
-    # 1. Idea → In Discovery: заполнены проблема и цель
-    if current_status == "Idea" and has_problem and has_goal:
-        task["status"] = "In Discovery"
-        return True
     
     # 2. In Discovery → Ready for Analyst: все бизнес-поля заполнены
     if current_status == "In Discovery" and is_ready_for_analyst:
@@ -520,9 +520,10 @@ if page == "📋 Список задач":
                     })
                     if analyst_deadline:
                         task_to_edit["analyst_deadline"] = analyst_deadline.strftime("%Y-%m-%d")
-                    
+    
+                    # Автопереход статусов
                     auto_update_status(task_to_edit)
-                    save_and_commit(st.session_state.tasks, f"Редактирование: {title}")
+                    save_tasks_to_file(st.session_state.tasks)
                     st.session_state.editing_task_id = None
                     st.success("✅ Сохранено!")
                     st.rerun()
@@ -610,7 +611,7 @@ if page == "📋 Список задач":
             # ТАБЛИЧНОЕ ОТОБРАЖЕНИЕ
             for task in filtered:
                 readiness = check_readiness(task)
-                status_emoji = {"Idea": "⚪", "In Discovery": "🔵", "Ready for Analyst": "🟠", "Requirements Clarification": "🟣", "Ready for Refinement": "✅"}.get(task["status"], "")
+                status_emoji = {"Idea": "⚪", "In Discovery": "🔵", "Ready for Analyst": "🟠", "In Analysis": "🟣", "Prioritization": "🟡", "Ready for Refinement": "", "Ready for Sprint": "✅"}.get(task["status"], "⚪")
                 value_emoji = {"High": "🔴", "Medium": "🟡", "Low": "🟢", "Не определено": "⚪"}.get(task.get("business_value", "Не определено"), "⚪")
                 urgency_emoji = {"High": "", "Medium": "🟡", "Low": "🟢", "Не определено": "⚪"}.get(task.get("urgency", "Не определено"), "⚪")
                 exec_badge = " 👑" if task.get("executive_priority") else ""
