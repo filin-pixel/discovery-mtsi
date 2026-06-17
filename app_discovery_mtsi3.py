@@ -492,9 +492,9 @@ if page == "📋 Список задач":
                     st.rerun()
 
             # Кнопка быстрого перехода в Ready for Sprint
-            if task.get("status") == "Ready for Refinement":
-                if st.button("✅ Перевести в Ready for Sprint", key=f"sprint_{task['id']}", type="primary", use_container_width=True):
-                    task["status"] = "Ready for Sprint"
+            if task_to_edit.get("status") == "Ready for Refinement":
+                if st.button("✅ Перевести в Ready for Sprint", key=f"sprint_{task_to_edit['id']}", type="primary", use_container_width=True):
+                    task_to_edit["status"] = "Ready for Sprint"
                     save_tasks_to_file(st.session_state.tasks)
                     st.success("✅ Задача готова к спринту!")
                     st.rerun()
