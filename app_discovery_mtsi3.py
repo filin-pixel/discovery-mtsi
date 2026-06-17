@@ -465,16 +465,26 @@ if page == "📋 Список задач":
                     save_and_commit(st.session_state.tasks, "Передано аналитику")
                     st.rerun()
             st.markdown("---")
-            
+
             st.markdown("**⚡ Быстрые действия:**")
-            col_conf, col_del = st.columns([1.5, 1])
-        
+            col_save, col_cancel, col_conf, col_del = st.columns(4)
+
+            with col_save:
+                if st.button(" Сохранить", key=f"save_top_{task_to_edit['id']}", type="primary", use_container_width=True):
+                    st.session_state.save_requested = True
+                    st.rerun()
+
+            with col_cancel:
+                if st.button("❌ Отмена", key=f"cancel_top_{task_to_edit['id']}", type="secondary", use_container_width=True):
+                    st.session_state.editing_task_id = None
+                    st.rerun()
+
             with col_conf:
                 try:
                     confluence_text = generate_confluence_text(task_to_edit)
                     safe_title = "".join(c for c in str(task_to_edit.get('title', 'task')) if c.isalnum() or c in (' ', '.', '_')).rstrip()
                     st.download_button(
-                        label="📥 Скачать текст для Confluence", 
+                        label="📥 Confluence", 
                         data=confluence_text, 
                         file_name=f"{safe_title}.txt", 
                         mime="text/plain", 
@@ -482,15 +492,17 @@ if page == "📋 Список задач":
                         use_container_width=True
                     )
                 except Exception as e:
-                    st.error(f"Ошибка генерации текста: {e}")
-            
-            with col_del:
-                if st.button("🗑️ Удалить задачу", key=f"delete_edit_{task_to_edit['id']}", type="secondary", use_container_width=True):
-                    st.session_state.tasks = [t for t in st.session_state.tasks if t["id"] != task_to_edit["id"]]
-                    save_and_commit(st.session_state.tasks, "Удалена задача")
-                    st.session_state.editing_task_id = None
-                    st.rerun()
+                    st.error(f"Ошибка: {e}")
 
+            with col_del:
+                if st.button("🗑️ Удалить", key=f"delete_edit_{task_to_edit['id']}", type="secondary", use_container_width=True):
+                    st.session_state.tasks = [t for t in st.session_state.tasks if t["id"] != task_to_edit["id"]]
+                    save_tasks_to_file(st.session_state.tasks)
+                      st.session_state.editing_task_id = None
+                      st.rerun()
+
+            st.markdown("---")
+            
             # Кнопка быстрого перехода в Ready for Sprint
             if task_to_edit.get("status") == "Ready for Refinement":
                 if st.button("✅ Перевести в Ready for Sprint", key=f"sprint_{task_to_edit['id']}", type="primary", use_container_width=True):
