@@ -736,8 +736,9 @@ if page == "📋 Список задач":
                                 status_options = ["Idea", "In Discovery", "Ready for Analyst", "Requirements Clarification", "Ready for Refinement"]
                                 current_status = task.get("status", "Idea")
                                 safe_index = status_options.index(current_status) if current_status in status_options else 0
-                                
+
                                 new_status = st.selectbox("Статус", ["Idea", "In Discovery", "Ready for Analyst", "In Analysis", "Prioritization", "Ready for Refinement", "Ready for Sprint"], index=["Idea", "In Discovery", "Ready for Analyst", "In Analysis", "Prioritization", "Ready for Refinement", "Ready for Sprint"].index(task["status"]) if task["status"] in ["Idea", "In Discovery", "Ready for Analyst", "In Analysis", "Prioritization", "Ready for Refinement", "Ready for Sprint"] else 0, key=f"status_{task['id']}")
+                                
                                 if new_status != current_status:
                                     task["status"] = new_status
                                     save_and_commit(st.session_state.tasks, f"Статус → {new_status}")
