@@ -137,6 +137,17 @@ def auto_update_status(task):
     
     return changed
 
+def update_all_tasks_status():
+    """Автоматически обновляет статусы всех задач"""
+    changed = False
+    for task in st.session_state.tasks:
+        if auto_update_status(task):
+            changed = True
+    
+    if changed:
+        save_tasks_to_file(st.session_state.tasks)
+        st.rerun()
+
 def check_readiness(task):
     filled_business = [f for f in BUSINESS_FIELDS if task.get(f)]
     filled_analyst = [f for f in ANALYST_FIELDS if task.get(f)]
@@ -406,6 +417,9 @@ with st.expander("ℹ️ Как пользоваться Discovery Manager", exp
 
 # ================= ЭКРАН 1: СПИСОК ЗАДАЧ =================
 if page == "📋 Список задач":
+    # Автообновление статусов при входе на страницу
+    update_all_tasks_status()
+    
     with st.expander("📖 Легенда", expanded=False):
         col_legend1, col_legend2, col_legend3 = st.columns(3)
         with col_legend1:
@@ -818,6 +832,9 @@ elif page == "➕ Новая задача":
 
 # ================= ЭКРАН 3: ПРИОРИТЕЗАЦИЯ =================
 elif page == "📊 Приоритезация задач":
+    # Автообновление статусов
+    update_all_tasks_status()
+    
     st.header("📊 Приоритезация (RICE)")
     tasks = st.session_state.tasks
     unprioritized = [t for t in tasks if not t.get("priority")]
