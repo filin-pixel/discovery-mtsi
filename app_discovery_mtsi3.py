@@ -772,7 +772,15 @@ if page == "📋 Список задач":
                                     st.session_state.tasks = [t for t in st.session_state.tasks if t.get("id") != task.get("id")]
                                     save_and_commit(st.session_state.tasks, "Удалена задача")
                                     st.rerun()
-       
+
+                            # ===== КНОПКА ПЕРЕХОДА В READY FOR SPRINT =====
+                            if task.get("status") == "Ready for Refinement":
+                                st.markdown("---")
+                                if st.button("✅ Перевести в Ready for Sprint", key=f"sprint_{task['id']}", type="primary", use_container_width=True):
+                                    task["status"] = "Ready for Sprint"
+                                    save_tasks_to_file(st.session_state.tasks)
+                                    st.success("✅ Задача готова к спринту!")
+                                    st.rerun()
                         st.markdown("---")
 
 # ================= ЭКРАН 2: НОВАЯ ЗАДАЧА =================
