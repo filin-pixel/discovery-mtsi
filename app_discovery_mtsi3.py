@@ -494,13 +494,6 @@ if page == "📋 Список задач":
                 except Exception as e:
                     st.error(f"Ошибка: {e}")
 
-            with col_del:
-                if st.button("🗑️ Удалить", key=f"delete_edit_{task_to_edit['id']}", type="secondary", use_container_width=True):
-                    st.session_state.tasks = [t for t in st.session_state.tasks if t["id"] != task_to_edit["id"]]
-                    save_tasks_to_file(st.session_state.tasks)
-                      st.session_state.editing_task_id = None
-                      st.rerun()
-
             st.markdown("---")
             
             # Кнопка быстрого перехода в Ready for Sprint
