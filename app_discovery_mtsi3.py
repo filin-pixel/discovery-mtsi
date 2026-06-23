@@ -162,13 +162,6 @@ def check_readiness(task):
         "missing_analyst": [f for f in ANALYST_FIELDS if not task.get(f)]
     }
     
-    # 2. In Discovery → Ready for Analyst: все бизнес-поля заполнены
-    if current_status == "In Discovery" and is_ready_for_analyst:
-        task["status"] = "Ready for Analyst"
-        if not task.get("analyst_deadline"):
-            task["analyst_deadline"] = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
-        return True
-    
     return False
 
 def calculate_rice(reach, impact, confidence, effort):
@@ -494,41 +487,14 @@ if page == "📋 Список задач":
                 except Exception as e:
                     st.error(f"Ошибка: {e}")
 
-            st.markdown("---")
-            
-            # Кнопка быстрого перехода в Ready for Sprint
-            if task_to_edit.get("status") == "Ready for Refinement":
-                if st.button("✅ Перевести в Ready for Sprint", key=f"sprint_{task_to_edit['id']}", type="primary", use_container_width=True):
-                    task_to_edit["status"] = "Ready for Sprint"
-                    save_tasks_to_file(st.session_state.tasks)
-                    st.success("✅ Задача готова к спринту!")
-                    st.rerun()
-            st.markdown("**⚡ Быстрые действия:**")
-            col_conf, col_del = st.columns([1.5, 1])
-
-            with col_conf:
-                try:
-                    confluence_text = generate_confluence_text(task_to_edit)
-                    safe_title = "".join(c for c in str(task_to_edit.get('title', 'task')) if c.isalnum() or c in (' ', '.', '_')).rstrip()
-                    st.download_button(
-                        label=" Скачать текст для Confluence", 
-                        data=confluence_text, 
-                        file_name=f"{safe_title}.txt", 
-                        mime="text/plain", 
-                        key=f"confluence_edit_{task_to_edit['id']}",
-                        use_container_width=True
-                    )
-                except Exception as e:
-                    st.error(f"Ошибка генерации текста: {e}")
-
             with col_del:
-                if st.button("🗑️ Удалить задачу", key=f"delete_edit_{task_to_edit['id']}", type="secondary", use_container_width=True):
+                if st.button("🗑️ Удалить", key=f"delete_edit_{task_to_edit['id']}", type="secondary", use_container_width=True):
                     st.session_state.tasks = [t for t in st.session_state.tasks if t["id"] != task_to_edit["id"]]
-                    save_tasks_to_file(st.session_state.tasks)
+                    save_and_commit(st.session_state.tasks, "Удалена задача")
                     st.session_state.editing_task_id = None
                     st.rerun()
+
             st.markdown("---")
-            
             with st.form("edit_task_form"):
                 st.subheader("📌 Базовая информация")
                 col1, col2 = st.columns(2)
@@ -616,8 +582,9 @@ if page == "📋 Список задач":
                     st.session_state.editing_task_id = None
                     st.rerun()
         else:
+            st.header("Бэклог инициатив")
         
-        if not st.session_state.tasks:
+            if not st.session_state.tasks:
             st.info("ℹ️ Нет задач")
         else:
             tasks = st.session_state.tasks
