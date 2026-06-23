@@ -622,7 +622,7 @@ if page == "📋 Список задач":
                 if cancelled:
                     st.session_state.editing_task_id = None
                     st.rerun()
-    else:
+        else:
         
         if not st.session_state.tasks:
             st.info("ℹ️ Нет задач")
